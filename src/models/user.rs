@@ -1,44 +1,43 @@
 use bcrypt::{DEFAULT_COST, hash, verify};
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::NaiveDateTime;
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, sqlx::FromRow)]
 pub struct User {
-    #[serde(skip_deserializing)]
     pub id: Uuid,
-    pub name: String,
+    pub username: String,
     pub email: String,
-    pub phone: Option<String>,
-    pub birth_date: Option<NaiveDate>,
+    pub first_name: String,
+    pub last_name: String,
     #[serde(skip_serializing)]
     pub password: String,
-    pub created_at: Option<NaiveDateTime>,
+    pub dt_created: NaiveDateTime,
+    pub dt_updated: NaiveDateTime,
 }
 
 #[allow(dead_code)]
 impl User {
     pub fn new(
-        name: &str,
+        username: &str,
         email: &str,
-        phone: Option<&str>,
-        birth_date: Option<String>,
+        first_name: &str,
+        last_name: &str,
         password: &str,
     ) -> Self {
-        let birth_date_parsed = birth_date
-            .as_deref()
-            .map(|d| NaiveDate::parse_from_str(d, "%Y-%m-%d").expect("Data inválida"));
-
         let hashed = hash(password, DEFAULT_COST).expect("Erro ao hashear");
+        let now: NaiveDateTime = Utc::now().naive_utc();
 
         Self {
             id: Uuid::new_v4(),
-            name: name.to_string(),
+            username: username.to_string(),
             email: email.to_string(),
-            phone: phone.map(|s| s.to_string()),
-            birth_date: birth_date_parsed,
+            first_name: first_name.to_string(),
+            last_name: last_name.to_string(),
             password: hashed,
-            created_at: None,
+            dt_created: now,
+            dt_updated: now,
         }
     }
 
