@@ -1,3 +1,4 @@
+use crate::errors::app_error::AppError;
 use crate::models::{
     profile::Profile,
     user::{User, UserRequest, UserResponse, UserWithProfile},
@@ -9,17 +10,19 @@ use std::env;
 use uuid::Uuid;
 
 use crate::utils::jwt::decode_token;
-use actix_web::HttpResponse;
 
-pub async fn get_me_from_token(token: &str, db: &PgPool) -> Result<UserResponse, HttpResponse> {
+pub async fn get_me_from_token(token: &str, db: &PgPool) -> Result<UserResponse, AppError> {
     // 1. Decodificar token
-    let claims =
-        decode_token(token).map_err(|_| HttpResponse::Unauthorized().body("Token inválido"))?;
+    let claims = decode_token(token).map_err(|_| AppError::Unauthorized(None))?;
 
-    let user_id = Uuid::parse_str(&claims.sub)
-        .map_err(|_| HttpResponse::Unauthorized().body("ID inválido no token"))?;
+    let user_id = Uuid::parse_str(&claims.sub).map_err(|_| AppError::Unauthorized(None))?;
 
-    // 2. Buscar usuário
+    // 2. Usar o service get_me_by_user_id
+    get_me_by_user_id(user_id, db).await
+}
+
+pub async fn get_me_by_user_id(user_id: Uuid, db: &PgPool) -> Result<UserResponse, AppError> {
+    // Buscar usuário
     let user = sqlx::query_as!(
         User,
         r#"
@@ -31,9 +34,9 @@ pub async fn get_me_from_token(token: &str, db: &PgPool) -> Result<UserResponse,
     )
     .fetch_one(db)
     .await
-    .map_err(|_| HttpResponse::NotFound().body("Usuário não encontrado"))?;
+    .map_err(|_| AppError::NotFound(None))?;
 
-    // 3. Buscar profile
+    // Buscar perfil
     let profile = sqlx::query_as_unchecked!(
         Profile,
         r#"
@@ -46,16 +49,19 @@ pub async fn get_me_from_token(token: &str, db: &PgPool) -> Result<UserResponse,
     )
     .fetch_one(db)
     .await
-    .map_err(|_| HttpResponse::InternalServerError().body("Erro ao buscar perfil"))?;
+    .map_err(|_| AppError::InternalError(None))?;
 
+    // Montar resposta
     let user_with_profile = UserWithProfile::from_user_and_profile(user, profile);
-    let expires_in = env::var("JWT_EXPIRES_IN").unwrap_or("86400".to_string());
 
-    Ok(UserResponse::from(
-        user_with_profile,
-        token.to_string(),
+    let expires_in = env::var("JWT_EXPIRES_IN").unwrap_or_else(|_| "86400".to_string());
+    let token = "".to_string(); // Aqui pode deixar vazio, já que o usuário já está autenticado
+
+    Ok(UserResponse {
+        user: user_with_profile,
+        token,
         expires_in,
-    ))
+    })
 }
 
 /// Cria user + profile com base em UserRequest

@@ -1,5 +1,6 @@
 use actix_web::{App, HttpServer, web};
 mod db;
+mod errors;
 mod middleware;
 mod models;
 mod routes;
