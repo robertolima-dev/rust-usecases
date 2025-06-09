@@ -6,13 +6,6 @@ use jsonwebtoken::{
 };
 use std::env;
 
-// use serde::Deserialize;
-// #[derive(Debug, Deserialize)]
-// pub struct Claims {
-//     pub sub: String,
-//     pub exp: usize,
-// }
-
 pub fn generate_jwt(user_id: &str) -> Result<String, jsonwebtoken::errors::Error> {
     dotenvy::dotenv().ok(); // Caso ainda não esteja carregado
 
@@ -54,6 +47,7 @@ pub fn verify_jwt(token: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
     Ok(token_data.claims)
 }
 
+#[allow(dead_code)]
 pub fn decode_token(token: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
     let secret = std::env::var("JWT_SECRET").expect("JWT_SECRET não definido");
     let token_data: TokenData<Claims> = decode::<Claims>(

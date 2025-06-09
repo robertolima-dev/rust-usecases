@@ -1,69 +1,59 @@
-# 🦀 Rust API - Users Service com Actix Web + PostgreSQL
+# 🚀 Rust API - Users Service com Actix Web + PostgreSQL
 
-Este projeto é uma API RESTful desenvolvida em **Rust** usando o poderoso framework **Actix Web**, com foco em segurança, desempenho e organização.  
-A API é modular, testável e extensível — com suporte a autenticação via JWT, middleware de proteção, criação automática de usuários e perfil, além de arquitetura versionada de rotas.
-
----
-
-## ✅ Funcionalidades implementadas
-
-- ✅ Cadastro de usuário com geração de `username` baseado no e-mail (`POST /api/v1/users/`)
-- ✅ Autenticação com JWT (`POST /api/v1/login/`)
-- ✅ Endpoint protegido com middleware JWT (`GET /api/v1/me/`)
-- ✅ Profile associado automaticamente ao criar um usuário
-- ✅ Criptografia de senha com Bcrypt
-- ✅ Integração com PostgreSQL
-- ✅ Migrations com `sqlx migrate`
-- ✅ Hot reload com `cargo-watch`
-- ✅ Modularização da aplicação por pastas e versões de API
-- ✅ Middleware de autenticação
-- ✅ Token com tempo de expiração (`JWT_EXPIRES_IN`)
-- ✅ Suporte a `.env` com `dotenvy`
+Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.rust-lang.org/), utilizando **Actix Web** como framework web e **PostgreSQL** como banco de dados. A aplicação está estruturada de forma modular com foco em boas práticas, segurança e escalabilidade.
 
 ---
 
-## 🗂️ Estrutura de Pastas
+## ✅ Funcionalidades Implementadas
 
-```bash
+- ✅ Criar usuário (`POST /api/v1/users/`)
+- ✅ Login e geração de JWT (`POST /api/v1/login/`)
+- ✅ Obter perfil autenticado (`GET /api/v1/me/`)
+- ✅ Módulo de autenticação com middleware
+- ✅ Middleware JWT (`Authorization: Token <JWT>`)
+- ✅ Extração de `user_id` via trait: `req.user_id()?`
+- ✅ Padronização de erros com `AppError`
+- ✅ Armazenamento de dados com PostgreSQL
+- ✅ Migrations com SQLx
+- ✅ Hot Reload com `cargo watch`
+- ✅ Estrutura modular (routes, services, models, errors, middleware)
+
+---
+
+## 📂 Estrutura de Pastas
+
+```
+
 src/
-├── main.rs                # Entry point da aplicação
-├── db/                    # Conexão e utilitários para banco de dados
-├── middleware/            # Middlewares como JWT Auth
-├── models/                # User, Profile, Request, Response etc
-├── routes/                # Rotas organizadas por versão (v1, v2...)
-│    ├── user_routes.rs
-│    ├── auth_routes.rs
-│    └── configure.rs      # Agrupa e configura as rotas v1
-├── services/              # Regras de negócio (user_service, auth_service...)
+├── db/                         # Conexão com o banco
+├── errors/                     # AppError e tratamentos customizados
+├── extensions/                 # Traits como RequestUserExt
+├── middleware/                 # Middleware de autenticação JWT
+├── models/                     # Structs de User, Profile, etc
+├── routes/                     # Rotas agrupadas por versão
+├── services/                   # Regras de negócio (login, users, auth)
+├── main.rs                     # Entrada principal
+
 ````
 
 ---
 
-## 🔐 Autenticação com JWT
+## 📡 Endpoints disponíveis
 
-* O login (`POST /api/v1/login/`) retorna o `UserResponse` com token
-* Endpoints privados requerem header:
+| Método | Rota              | Descrição                              | Auth |
+|--------|-------------------|----------------------------------------|------|
+| POST   | `/api/v1/users/`  | Criação de usuário                     | ❌    |
+| POST   | `/api/v1/login/`  | Login e retorno do JWT                 | ❌    |
+| GET    | `/api/v1/me/`     | Obter dados do usuário autenticado     | ✅    |
 
-```
-Authorization: Token {token}
-```
+### 🔐 Headers
 
-* O token é validado no middleware antes de permitir o acesso
-* Tempo de expiração configurável no `.env` com `JWT_EXPIRES_IN`
+Para rotas protegidas:
+```http
+Authorization: Token <JWT>
+````
 
----
-
-## 🧪 Endpoints disponíveis
-
-| Método | Rota             | Descrição                     | Protegido? |
-| ------ | ---------------- | ----------------------------- | ---------- |
-| POST   | `/api/v1/users/` | Criar usuário + profile       | ❌ Não      |
-| POST   | `/api/v1/login/` | Login e geração de token      | ❌ Não      |
-| GET    | `/api/v1/me/`    | Perfil do usuário autenticado | ✅ Sim      |
-
----
-
-## 📥 Exemplo de criação de usuário
+### 📥 Exemplo de JSON para criação de usuário
 
 ```json
 {
@@ -74,79 +64,65 @@ Authorization: Token {token}
 }
 ```
 
-> 🧠 O `username` será gerado automaticamente com base no e-mail, como `roberto_email_com`.
-
 ---
 
-## 🛠️ Como rodar localmente
+## 🔧 Como rodar localmente
 
-### 1. Clonar o projeto
+### 1. Clone o projeto
 
 ```bash
-git clone https://github.com/robertolima-dev/rust-usecases.git
-cd rust-usecases
+git clone https://github.com/seu-usuario/seu-projeto.git
+cd seu-projeto
 ```
 
-### 2. Configurar o arquivo `.env`
+### 2. Crie o `.env`
 
 ```env
-DATABASE_URL=postgres://usuario:senha@localhost:5432/nome_do_banco
-JWT_SECRET=sua_chave_ultra_secreta
+DATABASE_URL=postgres://usuario:senha@localhost:5432/seu_banco
+JWT_SECRET=sua_chave_secreta
 JWT_EXPIRES_IN=86400
 ```
 
-### 3. Rodar as migrations + iniciar servidor
+### 3. Execute as migrations e rode o projeto
 
 ```bash
-./dev.sh
-```
-
-> O script roda `.env`, aplica as migrations e inicia com hot reload via `cargo watch`.
-
----
-
-## 📦 Migrations com SQLx
-
-A estrutura `migrations/` armazena os arquivos `.sql`.
-
-```bash
-sqlx migrate add nome_da_migration
-sqlx migrate run
+./start_server.sh
 ```
 
 ---
 
-## ⚙️ Dependências principais
+## 🛠️ Tecnologias utilizadas
 
-* [actix-web](https://actix.rs/) - Framework web assíncrono
-* [sqlx](https://docs.rs/sqlx/) - Driver PostgreSQL e ferramenta de migration
-* [bcrypt](https://crates.io/crates/bcrypt) - Hash de senhas
-* [jsonwebtoken](https://crates.io/crates/jsonwebtoken) - JWT para autenticação
-* [uuid](https://crates.io/crates/uuid) - Identificadores únicos
-* [chrono](https://crates.io/crates/chrono) - Datas e horários
-* [serde](https://serde.rs/) - Serialização/Deserialização
+* [Rust](https://www.rust-lang.org/)
+* [Actix Web](https://actix.rs/)
+* [PostgreSQL](https://www.postgresql.org/)
+* [SQLx](https://docs.rs/sqlx/)
+* [JWT (jsonwebtoken)](https://docs.rs/jsonwebtoken/)
+* [Serde](https://serde.rs/)
+* [UUID](https://crates.io/crates/uuid)
+* [Chrono](https://crates.io/crates/chrono)
+* [Dotenvy](https://crates.io/crates/dotenvy)
 
 ---
 
-## 🔐 Próximos passos
+## 🧪 Migrations com SQLx
 
-* Refresh token 🔁
-* Logout com blacklist 🛑
-* Paginação e ordenação 📄
-* Upload para S3 ☁️
-* Integração com SQS/SES/Kafka 💬
+```bash
+sqlx migrate run          # Aplica as migrations
+sqlx migrate add <nome>   # Cria nova migration
+```
 
 ---
 
 ## ✍️ Autor
 
 **Roberto Lima**
-[🔗 GitHub](https://github.com/robertolima-dev) — [🌐 Portfólio](https://robertolima-developer.vercel.app)
+[🔗 GitHub](https://github.com/robertolima-dev) — [🌐 Portfólio](https://robertolima-developer.vercel.app/)
 📧 [robertolima.izphera@gmail.com](mailto:robertolima.izphera@gmail.com)
 
 ---
 
 ## 📜 Licença
 
-MIT © 2025 — Livre para uso, estudo e evolução 🔥
+MIT © 2025 — Livre para uso, estudo e modificação.
 

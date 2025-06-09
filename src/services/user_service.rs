@@ -9,19 +9,11 @@ use sqlx::PgPool;
 use std::env;
 use uuid::Uuid;
 
-use crate::utils::jwt::decode_token;
-
-pub async fn get_me_from_token(token: &str, db: &PgPool) -> Result<UserResponse, AppError> {
-    // 1. Decodificar token
-    let claims = decode_token(token).map_err(|_| AppError::Unauthorized(None))?;
-
-    let user_id = Uuid::parse_str(&claims.sub).map_err(|_| AppError::Unauthorized(None))?;
-
-    // 2. Usar o service get_me_by_user_id
-    get_me_by_user_id(user_id, db).await
-}
-
-pub async fn get_me_by_user_id(user_id: Uuid, db: &PgPool) -> Result<UserResponse, AppError> {
+pub async fn get_me_by_user_id(
+    user_id: Uuid,
+    db: &PgPool,
+    token: String,
+) -> Result<UserResponse, AppError> {
     // Buscar usuário
     let user = sqlx::query_as!(
         User,
@@ -55,7 +47,6 @@ pub async fn get_me_by_user_id(user_id: Uuid, db: &PgPool) -> Result<UserRespons
     let user_with_profile = UserWithProfile::from_user_and_profile(user, profile);
 
     let expires_in = env::var("JWT_EXPIRES_IN").unwrap_or_else(|_| "86400".to_string());
-    let token = "".to_string(); // Aqui pode deixar vazio, já que o usuário já está autenticado
 
     Ok(UserResponse {
         user: user_with_profile,
