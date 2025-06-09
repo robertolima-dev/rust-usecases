@@ -1,10 +1,10 @@
-use crate::models::user_request::ProfileRequest;
+use crate::models::user::ProfileRequest;
 use chrono::Utc;
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, sqlx::FromRow)]
 pub struct Profile {
     pub id: uuid::Uuid,
     pub user_id: Uuid,
