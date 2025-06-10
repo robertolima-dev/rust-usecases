@@ -4,6 +4,8 @@ use chrono::NaiveDateTime;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use validator::Validate;
+use crate::utils::validation::{validate_email, validate_password};
 
 #[derive(Serialize, Deserialize, Debug, sqlx::FromRow)]
 pub struct User {
@@ -49,25 +51,48 @@ impl User {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 pub struct ProfileRequest {
+    #[validate(length(min = 3, max = 500, message = "A bio deve ter entre 3 e 500 caracteres"))]
     pub bio: Option<String>,
+    
+    #[validate(custom = "crate::utils::validation::validate_birth_date")]
     pub birth_date: Option<String>,
+    
+    #[validate(custom = "crate::utils::validation::validate_phone")]
     pub phone: Option<String>,
+    
+    #[validate(custom = "crate::utils::validation::validate_document")]
     pub document: Option<String>,
+    
+    #[validate(length(min = 2, max = 100, message = "A profissão deve ter entre 2 e 100 caracteres"))]
     pub profession: Option<String>,
+    
+    #[validate(url(message = "URL do avatar inválida"))]
     pub avatar: Option<String>,
+    
     pub confirm_email: Option<bool>,
     pub unsubscribe: Option<bool>,
+    
+    #[validate(length(min = 2, max = 50, message = "O nível de acesso deve ter entre 2 e 50 caracteres"))]
     pub access_level: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 pub struct UserRequest {
+    #[validate(custom = "validate_email")]
     pub email: String,
+    
+    #[validate(length(min = 2, max = 50, message = "O nome deve ter entre 2 e 50 caracteres"))]
     pub first_name: String,
+    
+    #[validate(length(min = 2, max = 50, message = "O sobrenome deve ter entre 2 e 50 caracteres"))]
     pub last_name: String,
+    
+    #[validate(custom = "validate_password")]
     pub password: String,
+    
+    #[validate]
     pub profile: Option<ProfileRequest>,
 }
 

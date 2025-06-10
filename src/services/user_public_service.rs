@@ -7,16 +7,32 @@ use crate::models::{
 use crate::repositories::{profile_repository, user_repository};
 use crate::utils::formatter;
 use crate::utils::jwt::generate_jwt;
+use crate::config::get_settings;
 use chrono::Utc;
 use sqlx::PgPool;
-use std::env;
 use uuid::Uuid;
+use validator::Validate;
+use tracing::{info, error, warn};
 
 /// Cria user + profile com base em UserRequest
 pub async fn create_user_with_request(
     req: UserRequest,
     db: &PgPool,
 ) -> Result<UserResponse, AppError> {
+    info!(
+        email = %req.email,
+        "Criando novo usuário"
+    );
+
+    // Validar os dados de entrada
+    req.validate().map_err(|e| {
+        warn!(
+            error = %e,
+            "Dados inválidos na criação de usuário"
+        );
+        AppError::BadRequest(Some(format!("Dados inválidos: {}", e)))
+    })?;
+
     let user_id = Uuid::new_v4();
     let now = Utc::now().naive_utc();
 
@@ -38,8 +54,15 @@ pub async fn create_user_with_request(
 
     let user_with_profile = UserWithProfile::from_user_and_profile(user, profile);
 
+    let settings = get_settings();
     let token = generate_jwt(&user_id.to_string()).expect("Falha ao gerar token");
-    let expires_in = env::var("JWT_EXPIRES_IN").unwrap_or("604800".to_string());
+    let expires_in = settings.jwt.expires_in.to_string();
+
+    info!(
+        user_id = %user_id,
+        "Usuário criado com sucesso"
+    );
+
     Ok(UserResponse::from(user_with_profile, token, expires_in))
 }
 
@@ -49,6 +72,10 @@ pub async fn create_user_and_profile(
     db: &PgPool,
 ) -> Result<(), AppError> {
     let mut tx = db.begin().await.map_err(|err| {
+        error!(
+            error = %err,
+            "Erro ao iniciar transação"
+        );
         AppError::DatabaseError(Some(format!("Erro ao iniciar transação: {}", err)))
     })?;
 
@@ -56,6 +83,10 @@ pub async fn create_user_and_profile(
     profile_repository::create_profile_in_tx(&profile, &mut tx).await?;
 
     tx.commit().await.map_err(|err| {
+        error!(
+            error = %err,
+            "Erro ao commitar transação"
+        );
         AppError::DatabaseError(Some(format!("Erro ao commitar transação: {}", err)))
     })?;
 
@@ -63,17 +94,44 @@ pub async fn create_user_and_profile(
 }
 
 pub async fn login_user(payload: LoginRequest, db: &PgPool) -> Result<UserResponse, AppError> {
+    info!(
+        email = %payload.email,
+        "Tentativa de login"
+    );
+
+    // Validar os dados de entrada
+    payload.validate().map_err(|e| {
+        warn!(
+            error = %e,
+            "Dados inválidos no login"
+        );
+        AppError::BadRequest(Some(format!("Dados inválidos: {}", e)))
+    })?;
+
     // 1. Buscar usuário por email
     let user = user_repository::find_user_by_email(&payload.email, db)
         .await
         .map_err(|err| {
-            eprintln!("Erro ao buscar usuário: {:?}", err);
+            error!(
+                error = %err,
+                "Erro ao buscar usuário"
+            );
             AppError::InternalError(Some("Erro ao buscar usuário".into()))
         })?
-        .ok_or(AppError::NotFound(Some("Usuário não encontrado".into())))?;
+        .ok_or_else(|| {
+            warn!(
+                email = %payload.email,
+                "Usuário não encontrado"
+            );
+            AppError::NotFound(Some("Usuário não encontrado".into()))
+        })?;
 
     // 2. Verificar senha
     if !user.verify_password(&payload.password) {
+        warn!(
+            email = %payload.email,
+            "Senha incorreta"
+        );
         return Err(AppError::Unauthorized(Some("❌ Senha incorreta".into())));
     }
 
@@ -81,18 +139,30 @@ pub async fn login_user(payload: LoginRequest, db: &PgPool) -> Result<UserRespon
     let profile = profile_repository::find_profile_by_user_id(user.id, db)
         .await
         .map_err(|err| {
-            eprintln!("Erro ao buscar perfil: {:?}", err);
+            error!(
+                error = %err,
+                "Erro ao buscar perfil"
+            );
             AppError::InternalError(Some("Erro ao buscar perfil".into()))
         })?;
 
     // 4. Gerar token JWT
     let token = generate_jwt(&user.id.to_string()).map_err(|err| {
-        eprintln!("Erro ao gerar token: {:?}", err);
+        error!(
+            error = %err,
+            "Erro ao gerar token"
+        );
         AppError::InternalError(Some("Erro ao gerar token".into()))
     })?;
 
-    let expires_in = env::var("JWT_EXPIRES_IN").unwrap_or_else(|_| "86400".to_string());
+    let settings = get_settings();
+    let expires_in = settings.jwt.expires_in.to_string();
     let user_with_profile = UserWithProfile::from_user_and_profile(user, profile);
+
+    info!(
+        user_id = %user_with_profile.id,
+        "Login realizado com sucesso"
+    );
 
     Ok(UserResponse::from(user_with_profile, token, expires_in))
 }
