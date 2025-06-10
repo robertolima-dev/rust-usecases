@@ -5,15 +5,14 @@ use validator::ValidationError;
 lazy_static! {
     static ref EMAIL_REGEX: Regex =
         Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
-    static ref PASSWORD_REGEX: Regex =
-        Regex::new(r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$").unwrap();
+    static ref PASSWORD_REGEX: Regex = Regex::new(r"[A-Za-z\d@$!%*#?&]{8,}").unwrap();
     static ref PHONE_REGEX: Regex = Regex::new(r"^\+?[1-9]\d{1,14}$").unwrap();
     static ref DOCUMENT_REGEX: Regex = Regex::new(r"^\d{3}\.\d{3}\.\d{3}-\d{2}$").unwrap();
 }
 
 pub fn validate_email(email: &str) -> Result<(), ValidationError> {
     if !EMAIL_REGEX.is_match(email) {
-        let mut err = ValidationError::new("invalid_email");
+        let mut err = ValidationError::new("email_validation");
         err.message = Some("Email inválido".into());
         return Err(err);
     }
@@ -22,11 +21,25 @@ pub fn validate_email(email: &str) -> Result<(), ValidationError> {
 
 pub fn validate_password(password: &str) -> Result<(), ValidationError> {
     if !PASSWORD_REGEX.is_match(password) {
-        let mut err = ValidationError::new("invalid_password");
-        err.message =
-            Some("A senha deve ter pelo menos 8 caracteres, incluindo letras e números".into());
+        let mut err = ValidationError::new("password_validation");
+        err.message = Some("A senha deve ter pelo menos 8 caracteres e conter letras e números".into());
         return Err(err);
     }
+
+    // Verifica se contém pelo menos uma letra
+    if !password.chars().any(|c| c.is_alphabetic()) {
+        let mut err = ValidationError::new("password_validation");
+        err.message = Some("A senha deve conter pelo menos uma letra".into());
+        return Err(err);
+    }
+
+    // Verifica se contém pelo menos um número
+    if !password.chars().any(|c| c.is_numeric()) {
+        let mut err = ValidationError::new("password_validation");
+        err.message = Some("A senha deve conter pelo menos um número".into());
+        return Err(err);
+    }
+
     Ok(())
 }
 
