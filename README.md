@@ -2,7 +2,6 @@
 
 Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.rust-lang.org/), utilizando **Actix Web** como framework web e **PostgreSQL** como banco de dados. A aplicação está estruturada de forma modular com foco em boas práticas, segurança e escalabilidade.
 
----
 
 ## ✅ Funcionalidades Implementadas
 
@@ -19,7 +18,6 @@ Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.
 * ✅ Hot Reload com `cargo watch`
 * ✅ Estrutura modular (routes, services, models, errors, middleware)
 
----
 
 ## 🚀 Tecnologias
 
@@ -30,7 +28,6 @@ Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.
 - [JWT](https://jwt.io/)
 - [Tracing](https://github.com/tokio-rs/tracing)
 
----
 
 ## 📋 Pré-requisitos
 
@@ -68,7 +65,6 @@ sqlx migrate run
 ```bash
 ./start_server.sh
 ```
----
 
 ## 🏗️ Estrutura do Projeto
 
@@ -85,7 +81,6 @@ src/
 ├── services/       # Lógica de negócio
 └── utils/          # Utilitários (JWT, Validação, Logging)
 ```
----
 
 ## 🌟 Funcionalidades
 
@@ -123,7 +118,6 @@ src/
 - Queries tipadas
 - Migrations
 
----
 
 ## 🧪 Migrations com SQLx
 
@@ -132,7 +126,6 @@ sqlx migrate run          # Aplica as migrations
 sqlx migrate add <nome>   # Cria nova migration
 ```
 
----
 
 ## 🔍 Exemplos de Uso
 
@@ -202,7 +195,6 @@ Exemplo de log em produção:
 4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
----
 
 ## ✍️ Autor
 
@@ -210,7 +202,6 @@ Exemplo de log em produção:
 [🔗 GitHub](https://github.com/robertolima-dev) — [🌐 Portfólio](https://robertolima-developer.vercel.app/)
 📧 [robertolima.izphera@gmail.com](mailto:robertolima.izphera@gmail.com)
 
----
 
 ## 📄 Licença
 
