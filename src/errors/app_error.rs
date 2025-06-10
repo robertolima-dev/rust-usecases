@@ -5,6 +5,9 @@ use derive_more::Display; // essa macro implementa Display por você!
 #[derive(Debug, Display)]
 #[allow(dead_code)]
 pub enum AppError {
+    #[display(fmt = "Erro no banco de dados")]
+    DatabaseError(Option<String>),
+
     #[display(fmt = "Recurso não encontrado")]
     NotFound(Option<String>),
 
@@ -20,6 +23,10 @@ pub enum AppError {
 
 #[allow(dead_code)]
 impl AppError {
+    pub fn database_error<S: Into<String>>(msg: S) -> Self {
+        AppError::DatabaseError(Some(msg.into()))
+    }
+
     pub fn not_found<S: Into<String>>(msg: S) -> Self {
         AppError::NotFound(Some(msg.into()))
     }
@@ -40,6 +47,8 @@ impl AppError {
 impl ResponseError for AppError {
     fn error_response(&self) -> HttpResponse {
         match self {
+            AppError::DatabaseError(msg) => HttpResponse::InternalServerError()
+                .json(msg.as_deref().unwrap_or("Erro no banco de dados")),
             AppError::NotFound(msg) => {
                 HttpResponse::NotFound().json(msg.as_deref().unwrap_or("Recurso não encontrado"))
             }

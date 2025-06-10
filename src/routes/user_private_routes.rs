@@ -1,6 +1,6 @@
 use crate::errors::app_error::AppError;
 use crate::extensions::request_user_ext::RequestUserExt;
-use crate::services::user_service::get_me_by_user_id;
+use crate::services::user_private_service::get_me_by_user_id;
 use actix_web::{HttpRequest, HttpResponse, get, web};
 use sqlx::PgPool;
 

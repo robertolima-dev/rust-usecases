@@ -6,52 +6,53 @@ Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.
 
 ## ✅ Funcionalidades Implementadas
 
-- ✅ Criar usuário (`POST /api/v1/users/`)
-- ✅ Login e geração de JWT (`POST /api/v1/login/`)
-- ✅ Obter perfil autenticado (`GET /api/v1/me/`)
-- ✅ Módulo de autenticação com middleware
-- ✅ Middleware JWT (`Authorization: Token <JWT>`)
-- ✅ Extração de `user_id` via trait: `req.user_id()?`
-- ✅ Padronização de erros com `AppError`
-- ✅ Armazenamento de dados com PostgreSQL
-- ✅ Migrations com SQLx
-- ✅ Hot Reload com `cargo watch`
-- ✅ Estrutura modular (routes, services, models, errors, middleware)
+* ✅ Criar usuário (`POST /api/v1/users/`)
+* ✅ Login e geração de JWT (`POST /api/v1/login/`)
+* ✅ Obter perfil autenticado (`GET /api/v1/me/`)
+* ✅ Módulo de autenticação com middleware
+* ✅ Middleware JWT (`Authorization: Token <JWT>`)
+* ✅ Extração de `user_id` via trait: `req.user_id()?`
+* ✅ Padronização de erros com `AppError`
+* ✅ Repositórios para encapsular acesso ao banco de dados
+* ✅ Armazenamento de dados com PostgreSQL
+* ✅ Migrations com SQLx
+* ✅ Hot Reload com `cargo watch`
+* ✅ Estrutura modular (routes, services, models, errors, middleware)
 
 ---
 
 ## 📂 Estrutura de Pastas
 
 ```
-
 src/
 ├── db/                         # Conexão com o banco
 ├── errors/                     # AppError e tratamentos customizados
 ├── extensions/                 # Traits como RequestUserExt
 ├── middleware/                 # Middleware de autenticação JWT
 ├── models/                     # Structs de User, Profile, etc
+├── repositories/              # Acesso ao banco (CRUD User/Profile)
 ├── routes/                     # Rotas agrupadas por versão
 ├── services/                   # Regras de negócio (login, users, auth)
 ├── main.rs                     # Entrada principal
-
-````
+```
 
 ---
 
 ## 📡 Endpoints disponíveis
 
-| Método | Rota              | Descrição                              | Auth |
-|--------|-------------------|----------------------------------------|------|
-| POST   | `/api/v1/users/`  | Criação de usuário                     | ❌    |
-| POST   | `/api/v1/login/`  | Login e retorno do JWT                 | ❌    |
-| GET    | `/api/v1/me/`     | Obter dados do usuário autenticado     | ✅    |
+| Método | Rota             | Descrição                          | Auth |
+| ------ | ---------------- | ---------------------------------- | ---- |
+| POST   | `/api/v1/users/` | Criação de usuário                 | ❌    |
+| POST   | `/api/v1/login/` | Login e retorno do JWT             | ❌    |
+| GET    | `/api/v1/me/`    | Obter dados do usuário autenticado | ✅    |
 
 ### 🔐 Headers
 
 Para rotas protegidas:
+
 ```http
 Authorization: Token <JWT>
-````
+```
 
 ### 📥 Exemplo de JSON para criação de usuário
 
@@ -71,8 +72,8 @@ Authorization: Token <JWT>
 ### 1. Clone o projeto
 
 ```bash
-git clone https://github.com/seu-usuario/seu-projeto.git
-cd seu-projeto
+git clone https://github.com/robertolima-dev/rust-usecases.git
+cd rust-usecases
 ```
 
 ### 2. Crie o `.env`
@@ -125,4 +126,3 @@ sqlx migrate add <nome>   # Cria nova migration
 ## 📜 Licença
 
 MIT © 2025 — Livre para uso, estudo e modificação.
-
