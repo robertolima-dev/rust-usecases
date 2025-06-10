@@ -21,88 +21,107 @@ Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.
 
 ---
 
-## 📂 Estrutura de Pastas
+## 🚀 Tecnologias
 
-```
-src/
-├── db/                         # Conexão com o banco
-├── errors/                     # AppError e tratamentos customizados
-├── extensions/                 # Traits como RequestUserExt
-├── middleware/                 # Middleware de autenticação JWT
-├── models/                     # Structs de User, Profile, etc
-├── repositories/              # Acesso ao banco (CRUD User/Profile)
-├── routes/                     # Rotas agrupadas por versão
-├── services/                   # Regras de negócio (login, users, auth)
-├── main.rs                     # Entrada principal
-```
+- [Rust](https://www.rust-lang.org/)
+- [Actix Web](https://actix.rs/)
+- [SQLx](https://github.com/launchbadge/sqlx)
+- [PostgreSQL](https://www.postgresql.org/)
+- [JWT](https://jwt.io/)
+- [Tracing](https://github.com/tokio-rs/tracing)
 
 ---
 
-## 📡 Endpoints disponíveis
+## 📋 Pré-requisitos
 
-| Método | Rota             | Descrição                          | Auth |
-| ------ | ---------------- | ---------------------------------- | ---- |
-| POST   | `/api/v1/users/` | Criação de usuário                 | ❌    |
-| POST   | `/api/v1/login/` | Login e retorno do JWT             | ❌    |
-| GET    | `/api/v1/me/`    | Obter dados do usuário autenticado | ✅    |
+- Rust (última versão estável)
+- PostgreSQL
+- Docker (opcional)
 
-### 🔐 Headers
+## 🔧 Instalação
 
-Para rotas protegidas:
-
-```http
-Authorization: Token <JWT>
-```
-
-### 📥 Exemplo de JSON para criação de usuário
-
-```json
-{
-  "email": "roberto@email.com",
-  "first_name": "Roberto",
-  "last_name": "Lima",
-  "password": "senha123"
-}
-```
-
----
-
-## 🔧 Como rodar localmente
-
-### 1. Clone o projeto
-
+1. Clone o repositório:
 ```bash
-git clone https://github.com/robertolima-dev/rust-usecases.git
+git clone https://github.com/seu-usuario/rust-usecases.git
 cd rust-usecases
 ```
 
-### 2. Crie o `.env`
-
-```env
-DATABASE_URL=postgres://usuario:senha@localhost:5432/seu_banco
-JWT_SECRET=sua_chave_secreta
-JWT_EXPIRES_IN=86400
+2. Configure o banco de dados:
+```bash
+# Crie um banco PostgreSQL
+createdb rust_usecases
 ```
 
-### 3. Execute as migrations e rode o projeto
+3. Configure as variáveis de ambiente:
+```bash
+cp .env.example .env
+# Edite o arquivo .env com suas configurações
+```
 
+4. Execute as migrações:
+```bash
+sqlx database create
+sqlx migrate run
+```
+
+5. Execute o projeto:
 ```bash
 ./start_server.sh
 ```
-
 ---
 
-## 🛠️ Tecnologias utilizadas
+## 🏗️ Estrutura do Projeto
 
-* [Rust](https://www.rust-lang.org/)
-* [Actix Web](https://actix.rs/)
-* [PostgreSQL](https://www.postgresql.org/)
-* [SQLx](https://docs.rs/sqlx/)
-* [JWT (jsonwebtoken)](https://docs.rs/jsonwebtoken/)
-* [Serde](https://serde.rs/)
-* [UUID](https://crates.io/crates/uuid)
-* [Chrono](https://crates.io/crates/chrono)
-* [Dotenvy](https://crates.io/crates/dotenvy)
+```
+src/
+├── config/         # Configurações da aplicação
+├── db/             # Configuração do banco de dados
+├── errors/         # Tratamento de erros
+├── extensions/     # Extensões do Actix Web
+├── middleware/     # Middlewares (Auth, Rate Limit)
+├── models/         # Modelos de dados
+├── repositories/   # Acesso ao banco de dados
+├── routes/         # Rotas da API
+├── services/       # Lógica de negócio
+└── utils/          # Utilitários (JWT, Validação, Logging)
+```
+---
+
+## 🌟 Funcionalidades
+
+### Autenticação e Autorização
+- Registro de usuários
+- Login com JWT
+- Middleware de autenticação
+- Validação de tokens
+
+### Configurações
+- Configurações centralizadas com validação
+- Suporte a diferentes ambientes (dev, test, prod)
+- Validação de configurações obrigatórias
+- Tipos fortemente tipados para configurações
+
+### Validação de Dados
+- Validação de senhas (comprimento, caracteres, números)
+- Validação de emails
+- Validação de documentos
+- Validação de telefones
+- Mensagens de erro personalizadas
+
+### Sistema de Logs
+- Logs estruturados em JSON (produção)
+- Logs formatados para desenvolvimento
+- Diferentes níveis de log (error, warn, info, debug)
+- Campos estruturados para melhor análise
+- Timestamps em formato RFC3339
+- Informações de contexto (thread, arquivo, linha)
+
+### Banco de Dados
+- Conexão com PostgreSQL
+- Pool de conexões
+- Transações
+- Queries tipadas
+- Migrations
 
 ---
 
@@ -115,6 +134,76 @@ sqlx migrate add <nome>   # Cria nova migration
 
 ---
 
+## 🔍 Exemplos de Uso
+
+### Configuração de Logs
+
+```rust
+// Em desenvolvimento
+RUST_LOG=debug,rust_usecases=trace cargo run
+
+// Em produção
+RUST_LOG=info,rust_usecases=debug cargo run
+```
+
+### Validação de Dados
+
+```rust
+#[derive(Debug, Validate)]
+pub struct UserRequest {
+    #[validate(email(message = "Email inválido"))]
+    pub email: String,
+
+    #[validate(custom = "validate_password")]
+    pub password: String,
+}
+```
+
+### Configurações
+
+```rust
+#[derive(Debug, Validate)]
+pub struct Settings {
+    #[validate]
+    pub database: DatabaseSettings,
+    #[validate]
+    pub jwt: JwtSettings,
+    #[validate]
+    pub server: ServerSettings,
+    pub environment: Environment,
+}
+```
+
+## 📝 Logs
+
+O sistema de logs fornece informações detalhadas sobre o funcionamento da aplicação:
+
+- **Inicialização**: Configurações carregadas, conexão com banco
+- **Autenticação**: Tentativas de login, tokens gerados
+- **Operações**: Criação/atualização de usuários, erros de validação
+- **Erros**: Detalhes de exceções, stack traces
+
+Exemplo de log em produção:
+```json
+{
+  "timestamp": "2024-03-14T12:00:00Z",
+  "level": "info",
+  "message": "Usuário criado com sucesso",
+  "user_id": "123e4567-e89b-12d3-a456-426614174000",
+  "email": "usuario@exemplo.com"
+}
+```
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie sua feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+---
+
 ## ✍️ Autor
 
 **Roberto Lima**
@@ -123,6 +212,6 @@ sqlx migrate add <nome>   # Cria nova migration
 
 ---
 
-## 📜 Licença
+## 📄 Licença
 
-MIT © 2025 — Livre para uso, estudo e modificação.
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
