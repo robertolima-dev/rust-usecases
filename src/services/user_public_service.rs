@@ -7,16 +7,22 @@ use crate::models::{
 use crate::repositories::{profile_repository, user_repository};
 use crate::utils::formatter;
 use crate::utils::jwt::generate_jwt;
+use crate::config::get_settings;
 use chrono::Utc;
 use sqlx::PgPool;
-use std::env;
 use uuid::Uuid;
+use validator::Validate;
 
 /// Cria user + profile com base em UserRequest
 pub async fn create_user_with_request(
     req: UserRequest,
     db: &PgPool,
 ) -> Result<UserResponse, AppError> {
+    // Validar os dados de entrada
+    req.validate().map_err(|e| {
+        AppError::BadRequest(Some(format!("Dados inválidos: {}", e)))
+    })?;
+
     let user_id = Uuid::new_v4();
     let now = Utc::now().naive_utc();
 
@@ -38,8 +44,9 @@ pub async fn create_user_with_request(
 
     let user_with_profile = UserWithProfile::from_user_and_profile(user, profile);
 
+    let settings = get_settings();
     let token = generate_jwt(&user_id.to_string()).expect("Falha ao gerar token");
-    let expires_in = env::var("JWT_EXPIRES_IN").unwrap_or("604800".to_string());
+    let expires_in = settings.jwt.expires_in.to_string();
     Ok(UserResponse::from(user_with_profile, token, expires_in))
 }
 
@@ -63,6 +70,11 @@ pub async fn create_user_and_profile(
 }
 
 pub async fn login_user(payload: LoginRequest, db: &PgPool) -> Result<UserResponse, AppError> {
+    // Validar os dados de entrada
+    payload.validate().map_err(|e| {
+        AppError::BadRequest(Some(format!("Dados inválidos: {}", e)))
+    })?;
+
     // 1. Buscar usuário por email
     let user = user_repository::find_user_by_email(&payload.email, db)
         .await
@@ -91,7 +103,8 @@ pub async fn login_user(payload: LoginRequest, db: &PgPool) -> Result<UserRespon
         AppError::InternalError(Some("Erro ao gerar token".into()))
     })?;
 
-    let expires_in = env::var("JWT_EXPIRES_IN").unwrap_or_else(|_| "86400".to_string());
+    let settings = get_settings();
+    let expires_in = settings.jwt.expires_in.to_string();
     let user_with_profile = UserWithProfile::from_user_and_profile(user, profile);
 
     Ok(UserResponse::from(user_with_profile, token, expires_in))

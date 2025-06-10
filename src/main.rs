@@ -8,15 +8,26 @@ mod repositories;
 mod routes;
 mod services;
 mod utils;
+mod config;
 
 use db::get_db_pool;
 // use routes::configure::config;
 use routes::configure::api_v1_scope;
+use config::init_settings;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenvy::dotenv().ok();
+    
+    // Inicializa as configurações
+    init_settings().expect("Falha ao inicializar configurações");
+    
+    // Obtém as configurações
+    let settings = config::get_settings();
     let pool = get_db_pool().await;
+
+    println!("🚀 Iniciando servidor em {}:{}", settings.server.host, settings.server.port);
+    println!("🌍 Ambiente: {:?}", settings.environment);
 
     HttpServer::new(move || {
         App::new()
@@ -24,7 +35,7 @@ async fn main() -> std::io::Result<()> {
             // .configure(config)
             .service(api_v1_scope())
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind((settings.server.host, settings.server.port))?
     .run()
     .await
 }
