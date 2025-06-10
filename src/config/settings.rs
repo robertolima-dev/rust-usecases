@@ -8,7 +8,11 @@ use validator::Validate;
 pub struct DatabaseSettings {
     #[validate(length(min = 1, message = "DATABASE_URL não pode estar vazia"))]
     pub url: String,
-    #[validate(range(min = 1, max = 100, message = "Número de conexões deve estar entre 1 e 100"))]
+    #[validate(range(
+        min = 1,
+        max = 100,
+        message = "Número de conexões deve estar entre 1 e 100"
+    ))]
     pub max_connections: u32,
 }
 
@@ -16,7 +20,11 @@ pub struct DatabaseSettings {
 pub struct JwtSettings {
     #[validate(length(min = 32, message = "JWT_SECRET deve ter pelo menos 32 caracteres"))]
     pub secret: String,
-    #[validate(range(min = 300, max = 86400, message = "JWT_EXPIRES_IN deve estar entre 300 e 86400 segundos"))]
+    #[validate(range(
+        min = 300,
+        max = 86400,
+        message = "JWT_EXPIRES_IN deve estar entre 300 e 86400 segundos"
+    ))]
     pub expires_in: u64,
 }
 
@@ -68,6 +76,7 @@ fn validate_ip(ip: &IpAddr) -> Result<(), validator::ValidationError> {
     Ok(())
 }
 
+#[allow(dead_code)]
 impl Settings {
     pub fn load() -> Result<Self, String> {
         let environment = env::var("APP_ENVIRONMENT")
@@ -102,7 +111,9 @@ impl Settings {
             environment,
         };
 
-        settings.validate().map_err(|e| format!("Configurações inválidas: {}", e))?;
+        settings
+            .validate()
+            .map_err(|e| format!("Configurações inválidas: {}", e))?;
         Ok(settings)
     }
 

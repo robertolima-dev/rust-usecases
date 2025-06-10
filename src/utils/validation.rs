@@ -1,10 +1,12 @@
-use validator::{ValidationError, ValidationErrors};
-use regex::Regex;
 use lazy_static::lazy_static;
+use regex::Regex;
+use validator::ValidationError;
 
 lazy_static! {
-    static ref EMAIL_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
-    static ref PASSWORD_REGEX: Regex = Regex::new(r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$").unwrap();
+    static ref EMAIL_REGEX: Regex =
+        Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
+    static ref PASSWORD_REGEX: Regex =
+        Regex::new(r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$").unwrap();
     static ref PHONE_REGEX: Regex = Regex::new(r"^\+?[1-9]\d{1,14}$").unwrap();
     static ref DOCUMENT_REGEX: Regex = Regex::new(r"^\d{3}\.\d{3}\.\d{3}-\d{2}$").unwrap();
 }
@@ -21,7 +23,8 @@ pub fn validate_email(email: &str) -> Result<(), ValidationError> {
 pub fn validate_password(password: &str) -> Result<(), ValidationError> {
     if !PASSWORD_REGEX.is_match(password) {
         let mut err = ValidationError::new("invalid_password");
-        err.message = Some("A senha deve ter pelo menos 8 caracteres, incluindo letras e números".into());
+        err.message =
+            Some("A senha deve ter pelo menos 8 caracteres, incluindo letras e números".into());
         return Err(err);
     }
     Ok(())
@@ -52,4 +55,4 @@ pub fn validate_birth_date(birth_date: &str) -> Result<(), ValidationError> {
         return Err(err);
     }
     Ok(())
-} 
+}
