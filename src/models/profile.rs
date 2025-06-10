@@ -1,6 +1,6 @@
+use crate::extensions::has_any_field::HasAnyField;
 use crate::models::user::ProfileRequest;
-use chrono::Utc;
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::{NaiveDate, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -81,5 +81,26 @@ impl Profile {
                 dt_updated: now,
             }
         }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateProfileRequest {
+    pub bio: Option<String>,
+    pub phone: Option<String>,
+    pub birth_date: Option<NaiveDate>,
+    pub profession: Option<String>,
+    pub document: Option<String>,
+    pub avatar: Option<String>,
+}
+
+impl HasAnyField for UpdateProfileRequest {
+    fn has_any_field(&self) -> bool {
+        self.bio.is_some()
+            || self.phone.is_some()
+            || self.birth_date.is_some()
+            || self.profession.is_some()
+            || self.avatar.is_some()
+            || self.document.is_some()
     }
 }

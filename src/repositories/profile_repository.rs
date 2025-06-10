@@ -1,5 +1,5 @@
 use crate::errors::app_error::AppError;
-use crate::models::profile::Profile;
+use crate::models::profile::{Profile, UpdateProfileRequest};
 use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
@@ -49,6 +49,38 @@ pub async fn create_profile_in_tx(
     .execute(&mut **tx)
     .await
     .map_err(|_| AppError::InternalError(Some("Erro ao criar perfil".into())))?;
+
+    Ok(())
+}
+
+pub async fn update_profile_fields_by_user_id(
+    user_id: Uuid,
+    payload: &UpdateProfileRequest,
+    db: &PgPool,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        r#"
+        UPDATE profiles
+        SET 
+            bio = COALESCE($1, bio),
+            phone = COALESCE($2, phone),
+            birth_date = COALESCE($3, birth_date),
+            profession = COALESCE($4, profession),
+            document = COALESCE($5, document),
+            avatar = COALESCE($6, avatar),
+            dt_updated = NOW()
+        WHERE user_id = $7
+        "#,
+        payload.bio,
+        payload.phone,
+        payload.birth_date,
+        payload.profession,
+        payload.document,
+        payload.avatar,
+        user_id
+    )
+    .execute(db)
+    .await?;
 
     Ok(())
 }

@@ -16,6 +16,7 @@ pub struct User {
     pub password: String,
     pub dt_created: NaiveDateTime,
     pub dt_updated: NaiveDateTime,
+    pub dt_deleted: Option<NaiveDateTime>,
 }
 
 #[allow(dead_code)]
@@ -39,6 +40,7 @@ impl User {
             password: hashed,
             dt_created: now,
             dt_updated: now,
+            dt_deleted: None,
         }
     }
 
@@ -119,4 +121,10 @@ impl UserResponse {
             expires_in,
         }
     }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateUserRequest {
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
 }
