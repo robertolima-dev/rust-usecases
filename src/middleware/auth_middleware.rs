@@ -4,7 +4,8 @@ use actix_web::{Error, HttpMessage, HttpResponse};
 use futures::future::{LocalBoxFuture, Ready, ok};
 use jsonwebtoken::{DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
-use std::{env, rc::Rc};
+use std::rc::Rc;
+use crate::config::get_settings;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -54,7 +55,8 @@ where
 
         let token = auth_header.strip_prefix("Token ").unwrap_or("");
 
-        let jwt_secret = env::var("JWT_SECRET").unwrap_or_else(|_| "secret".into());
+        let settings = get_settings();
+        let jwt_secret = &settings.jwt.secret;
 
         match decode::<Claims>(
             token,
