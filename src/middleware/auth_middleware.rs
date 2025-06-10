@@ -6,6 +6,7 @@ use jsonwebtoken::{DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 use crate::config::get_settings;
+use tracing::{info, warn, error};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -55,6 +56,14 @@ where
 
         let token = auth_header.strip_prefix("Token ").unwrap_or("");
 
+        if token.is_empty() {
+            warn!("Tentativa de acesso sem token");
+            let response = HttpResponse::Unauthorized()
+                .body("Token não fornecido")
+                .map_into_boxed_body();
+            return Box::pin(async { Ok(req.into_response(response)) });
+        }
+
         let settings = get_settings();
         let jwt_secret = &settings.jwt.secret;
 
@@ -64,11 +73,19 @@ where
             &Validation::default(),
         ) {
             Ok(token_data) => {
+                info!(
+                    user_id = %token_data.claims.sub,
+                    "Token válido"
+                );
                 req.extensions_mut().insert(token_data.claims);
                 let fut = self.service.call(req);
                 Box::pin(async move { fut.await })
             }
-            Err(_) => {
+            Err(err) => {
+                error!(
+                    error = %err,
+                    "Token inválido"
+                );
                 let response = HttpResponse::Unauthorized()
                     .body("Token inválido")
                     .map_into_boxed_body();
