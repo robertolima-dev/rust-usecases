@@ -63,12 +63,11 @@ pub async fn list_users(db: &PgPool, limit: i64, offset: i64) -> Result<Vec<User
     .map_err(|_| AppError::InternalError(Some("Erro ao listar usuários".into())))
 }
 
-/// ✅ Cria o usuário usando uma transação (já aberta no service)
 pub async fn create_user_in_tx(
     user: &User,
     tx: &mut Transaction<'_, Postgres>,
 ) -> Result<(), AppError> {
-    sqlx::query!(
+    let result = sqlx::query!(
         r#"
         INSERT INTO users (id, username, email, first_name, last_name, password, dt_created, dt_updated)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -83,10 +82,24 @@ pub async fn create_user_in_tx(
         user.dt_updated
     )
     .execute(&mut **tx)
-    .await
-    .map_err(|_| AppError::InternalError(Some("Erro ao criar usuário".into())))?;
+    .await;
 
-    Ok(())
+    match result {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            if let Some(db_err) = e.as_database_error() {
+                if let Some(code) = db_err.code() {
+                    if code == "23505" {
+                        // Código 23505 = unique_violation no PostgreSQL
+                        return Err(AppError::Conflict(Some("Email já cadastrado".into())));
+                    }
+                }
+            }
+            Err(AppError::InternalError(Some(
+                "Erro ao criar usuário".into(),
+            )))
+        }
+    }
 }
 
 #[allow(dead_code)]

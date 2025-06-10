@@ -5,6 +5,7 @@ use crate::models::{
     user::{User, UserRequest, UserResponse, UserWithProfile},
 };
 use crate::repositories::{profile_repository, user_repository};
+use crate::utils::formatter;
 use crate::utils::jwt::generate_jwt;
 use chrono::Utc;
 use sqlx::PgPool;
@@ -19,18 +20,9 @@ pub async fn create_user_with_request(
     let user_id = Uuid::new_v4();
     let now = Utc::now().naive_utc();
 
-    fn generate_username_from_email(email: &str) -> String {
-        let prefix = email.split('@').next().unwrap_or("");
-
-        prefix
-            .chars()
-            .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
-            .collect()
-    }
-
     let user = User {
         id: user_id,
-        username: generate_username_from_email(&req.email),
+        username: formatter::generate_username_from_email(&req.email),
         email: req.email,
         first_name: req.first_name,
         last_name: req.last_name,

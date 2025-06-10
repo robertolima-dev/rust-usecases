@@ -1,9 +1,7 @@
 use crate::errors::app_error::AppError;
 use crate::extensions::request_user_ext::RequestUserExt;
 use crate::models::user::UpdateUserRequest;
-use crate::services::user_private_service::{
-    delete_logged_user, get_me_by_user_id, list_users_paginated, update_logged_user,
-};
+use crate::services::user_private_service;
 use crate::utils::pagination::PaginationParams;
 use actix_web::{HttpRequest, HttpResponse, delete, get, patch, web};
 use sqlx::PgPool;
@@ -19,7 +17,7 @@ pub async fn get_me(req: HttpRequest, db: web::Data<PgPool>) -> Result<HttpRespo
         .ok_or(AppError::Unauthorized(None))?;
     let user_id = req.user_id()?;
 
-    let response = get_me_by_user_id(user_id, db.get_ref(), token).await?;
+    let response = user_private_service::get_me_by_user_id(user_id, db.get_ref(), token).await?;
     Ok(HttpResponse::Ok().json(response))
 }
 
@@ -30,7 +28,7 @@ pub async fn list_users(
 ) -> Result<HttpResponse, AppError> {
     let PaginationParams { limit, offset } = query.into_inner();
 
-    let paginated = list_users_paginated(db.get_ref(), limit, offset).await?;
+    let paginated = user_private_service::list_users_paginated(db.get_ref(), limit, offset).await?;
 
     Ok(HttpResponse::Ok().json(paginated))
 }
@@ -42,7 +40,9 @@ pub async fn update_user(
     db: web::Data<PgPool>,
 ) -> Result<HttpResponse, AppError> {
     let user_id = req.user_id()?;
-    let response = update_logged_user(db.get_ref(), user_id, payload.into_inner()).await?;
+    let response =
+        user_private_service::update_logged_user(db.get_ref(), user_id, payload.into_inner())
+            .await?;
     Ok(HttpResponse::Ok().json(response))
 }
 
@@ -52,6 +52,6 @@ pub async fn delete_user(
     db: web::Data<PgPool>,
 ) -> Result<HttpResponse, AppError> {
     let user_id = req.user_id()?;
-    delete_logged_user(db.get_ref(), user_id).await?;
+    user_private_service::delete_logged_user(db.get_ref(), user_id).await?;
     Ok(HttpResponse::NoContent().finish())
 }

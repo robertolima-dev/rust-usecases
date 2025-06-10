@@ -5,6 +5,9 @@ use derive_more::Display; // essa macro implementa Display por você!
 #[derive(Debug, Display)]
 #[allow(dead_code)]
 pub enum AppError {
+    #[display(fmt = "Conflito de dados")]
+    Conflict(Option<String>),
+
     #[display(fmt = "Erro no banco de dados")]
     DatabaseError(Option<String>),
 
@@ -47,6 +50,9 @@ impl AppError {
 impl ResponseError for AppError {
     fn error_response(&self) -> HttpResponse {
         match self {
+            AppError::Conflict(msg) => {
+                HttpResponse::Conflict().json(msg.as_deref().unwrap_or("Conflito de dados"))
+            }
             AppError::DatabaseError(msg) => HttpResponse::InternalServerError()
                 .json(msg.as_deref().unwrap_or("Erro no banco de dados")),
             AppError::NotFound(msg) => {
