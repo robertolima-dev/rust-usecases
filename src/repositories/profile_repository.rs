@@ -17,7 +17,7 @@ pub async fn find_profile_by_user_id(user_id: Uuid, db: &PgPool) -> Result<Profi
     )
     .fetch_one(db)
     .await
-    .map_err(|_| AppError::InternalError(Some("Erro ao buscar perfil".into())))
+    .map_err(|_| AppError::BadRequest(Some("Erro ao buscar perfil".into())))
 }
 
 pub async fn create_profile_in_tx(
@@ -48,7 +48,7 @@ pub async fn create_profile_in_tx(
     )
     .execute(&mut **tx)
     .await
-    .map_err(|_| AppError::InternalError(Some("Erro ao criar perfil".into())))?;
+    .map_err(|_| AppError::BadRequest(Some("Erro ao criar perfil".into())))?;
 
     Ok(())
 }

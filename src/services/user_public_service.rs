@@ -1,4 +1,7 @@
+use crate::config::get_settings;
 use crate::errors::app_error::AppError;
+use crate::log_fail;
+use crate::logs::model::LogLevel;
 use crate::models::auth::LoginRequest;
 use crate::models::{
     profile::Profile,
@@ -7,17 +10,18 @@ use crate::models::{
 use crate::repositories::{profile_repository, user_repository};
 use crate::utils::formatter;
 use crate::utils::jwt::generate_jwt;
-use crate::config::get_settings;
 use chrono::Utc;
+use mongodb::Database;
 use sqlx::PgPool;
+use tracing::{error, info, warn};
 use uuid::Uuid;
 use validator::Validate;
-use tracing::{info, error, warn};
 
 /// Cria user + profile com base em UserRequest
 pub async fn create_user_with_request(
     req: UserRequest,
     db: &PgPool,
+    mongo_db: &Database,
 ) -> Result<UserResponse, AppError> {
     info!(
         email = %req.email,
@@ -39,7 +43,7 @@ pub async fn create_user_with_request(
     let user = User {
         id: user_id,
         username: formatter::generate_username_from_email(&req.email),
-        email: req.email,
+        email: req.email.clone(),
         first_name: req.first_name,
         last_name: req.last_name,
         password: bcrypt::hash(&req.password, bcrypt::DEFAULT_COST).expect("Erro ao hashear senha"),
@@ -50,7 +54,20 @@ pub async fn create_user_with_request(
 
     let profile = Profile::from_request(user_id, req.profile);
 
-    create_user_and_profile(&user, &profile, db).await?;
+    match create_user_and_profile(&user, &profile, db).await {
+        Ok(p) => p,
+        Err(err) => {
+            log_fail!(
+                err,
+                LogLevel::Error,
+                format!("Erro ao criar o usuário: {}", &req.email),
+                "user_service",
+                Some(user_id),
+                mongo_db
+            );
+            return Err(AppError::BadRequest(Some("Erro ao criar o usuario".into())));
+        }
+    };
 
     let user_with_profile = UserWithProfile::from_user_and_profile(user, profile);
 
@@ -93,7 +110,11 @@ pub async fn create_user_and_profile(
     Ok(())
 }
 
-pub async fn login_user(payload: LoginRequest, db: &PgPool) -> Result<UserResponse, AppError> {
+pub async fn login_user(
+    payload: LoginRequest,
+    db: &PgPool,
+    mongo_db: &Database,
+) -> Result<UserResponse, AppError> {
     info!(
         email = %payload.email,
         "Tentativa de login"
@@ -109,28 +130,47 @@ pub async fn login_user(payload: LoginRequest, db: &PgPool) -> Result<UserRespon
     })?;
 
     // 1. Buscar usuário por email
-    let user = user_repository::find_user_by_email(&payload.email, db)
-        .await
-        .map_err(|err| {
-            error!(
-                error = %err,
-                "Erro ao buscar usuário"
+    let user = match user_repository::find_user_by_email(&payload.email, db).await {
+        Ok(Some(user)) => user,
+        Ok(None) => {
+            warn!(email = %payload.email, "Usuário não encontrado");
+            log_fail!(
+                "Usuário não encontrado",
+                LogLevel::Error,
+                "Usuário não encontrado",
+                "auth_service",
+                None,
+                mongo_db
             );
-            AppError::InternalError(Some("Erro ao buscar usuário".into()))
-        })?
-        .ok_or_else(|| {
-            warn!(
-                email = %payload.email,
-                "Usuário não encontrado"
+            return Err(AppError::NotFound(Some("Usuário não encontrado".into())));
+        }
+        Err(err) => {
+            error!(error = %err, "Erro ao buscar usuário");
+            log_fail!(
+                err,
+                LogLevel::Error,
+                "Usuário não encontrado",
+                "auth_service",
+                None,
+                mongo_db
             );
-            AppError::NotFound(Some("Usuário não encontrado".into()))
-        })?;
+            return Err(AppError::BadRequest(Some("Erro ao buscar usuário".into())));
+        }
+    };
 
     // 2. Verificar senha
     if !user.verify_password(&payload.password) {
         warn!(
             email = %payload.email,
             "Senha incorreta"
+        );
+        log_fail!(
+            format!("Senha incorreta para o email: {}", payload.email),
+            LogLevel::Warn,
+            "Erro ao verificar a senha!",
+            "auth_service",
+            Some(user.id), // ou None se não tiver ainda o user_id
+            mongo_db
         );
         return Err(AppError::Unauthorized(Some("❌ Senha incorreta".into())));
     }
@@ -143,8 +183,12 @@ pub async fn login_user(payload: LoginRequest, db: &PgPool) -> Result<UserRespon
                 error = %err,
                 "Erro ao buscar perfil"
             );
-            AppError::InternalError(Some("Erro ao buscar perfil".into()))
+            AppError::BadRequest(Some("Erro ao buscar perfil".into()))
         })?;
+
+    // testar a falha do log e ver lista de log no mongo
+    // let fake_user_id = Uuid::new_v4();
+    // let token = generate_jwt(&fake_user_id.to_string()).expect("Falha ao gerar token");
 
     // 4. Gerar token JWT
     let token = generate_jwt(&user.id.to_string()).map_err(|err| {
@@ -152,7 +196,7 @@ pub async fn login_user(payload: LoginRequest, db: &PgPool) -> Result<UserRespon
             error = %err,
             "Erro ao gerar token"
         );
-        AppError::InternalError(Some("Erro ao gerar token".into()))
+        AppError::BadRequest(Some("Erro ao gerar token".into()))
     })?;
 
     let settings = get_settings();

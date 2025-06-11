@@ -24,7 +24,7 @@ collection:
             meta:
               id: req_9134ee6f4901461c8e3e10374d2c29ea
               created: 1749471020389
-              modified: 1749481445071
+              modified: 1749650430498
               isPrivate: false
               sortKey: -1749322078183
             method: GET
@@ -93,7 +93,7 @@ collection:
             meta:
               id: req_2875cf0f9e4b4f239b389174bd7e3b26
               created: 1749577697378
-              modified: 1749577755604
+              modified: 1749652657631
               isPrivate: false
               sortKey: -1749256360435.5
             method: PATCH
@@ -165,7 +165,7 @@ collection:
             meta:
               id: req_ab4fc7e3bee1421a921bf7cece4d4f6c
               created: 1749322097549
-              modified: 1749585682716
+              modified: 1749653861665
               isPrivate: false
               sortKey: -1749432410109.75
             method: POST
@@ -173,7 +173,7 @@ collection:
               mimeType: application/json
               text: |-
                 {
-                  "email": "robertolima.izphera+user16@gmail.com",
+                  "email": "robertolima.izphera+user18@gmail.com",
                   "first_name": "Roberto",
                   "last_name": "Lima",
                   "password": "senha123"
@@ -196,7 +196,7 @@ collection:
             meta:
               id: req_cd39ebcd3541409f85aec28612b15b51
               created: 1749469187452
-              modified: 1749579104033
+              modified: 1749655991435
               isPrivate: false
               sortKey: -1749469187452
             method: POST
@@ -204,7 +204,7 @@ collection:
               mimeType: application/json
               text: |-
                 {
-                  "email": "robertolima.izphera+user6@gmail.com",
+                  "email": "robertolima.izphera+user6A@gmail.com",
                   "password": "senha123"
                 }
             headers:
@@ -232,7 +232,7 @@ collection:
             meta:
               id: req_88f878a2cbf24bb89002e3b9f2e919cd
               created: 1749578899061
-              modified: 1749579096546
+              modified: 1749598641960
               isPrivate: false
               sortKey: -1749524035190
             method: POST
@@ -240,8 +240,8 @@ collection:
               mimeType: application/json
               text: |-
                 {
-                	"bio": "Minha bio",
-                	"birth_date": "1929-12-12",
+                	"bio": "Minha bio aqui!",
+                	"birth_date": "1979-12-12",
                 	"phone": "11988776655",
                 	"document": "123456789-10",
                 	"avatar": "https://media.emannar.com/4798429362459417414.jpeg"
@@ -264,6 +264,55 @@ collection:
                 send: true
                 store: true
               rebuildPath: true
+      - name: LOGS
+        meta:
+          id: fld_f5a6933f7a424d568bd12433e8970529
+          created: 1749646727049
+          modified: 1749646727049
+          sortKey: -1749646727049
+        children:
+          - url: "{{ _.URL }}/v1/logs/"
+            name: list
+            meta:
+              id: req_f8105dd5c8b64f528bcb959d2cf4730b
+              created: 1749646730184
+              modified: 1749655536533
+              isPrivate: false
+              sortKey: -1749646730184
+            method: GET
+            parameters:
+              - id: pair_cb8e2ba623e247a8bd5038c33ec56b8e
+                name: level
+                value: error
+                disabled: true
+              - id: pair_bfae23df79e841f482cb94c1e9f94e0d
+                name: module
+                value: user_service
+                disabled: true
+              - id: pair_2bb6dee1961649f7a7207635dbc47600
+                name: limit
+                value: "5"
+                disabled: false
+              - id: pair_7e4b9b2ad815491ca6e83ae48ce5f70f
+                name: skip
+                value: "0"
+                disabled: false
+            headers:
+              - name: User-Agent
+                value: insomnia/11.0.0
+                id: pair_82f3876efee54e988008f549aef4b4e2
+              - id: pair_7a85a9b9a99044b5b8550cff4adc9185
+                name: Authorization
+                value: Token {{ _.TOKEN }}
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
 cookieJar:
   name: Default Jar
   meta:
@@ -275,8 +324,8 @@ environments:
   meta:
     id: env_90563274783f080e258c5e2212f8f9e842e91d21
     created: 1749322017935
-    modified: 1749579114146
+    modified: 1749650317058
     isPrivate: false
   data:
     URL: http://localhost:8080/api
-    TOKEN: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmY2I4NTZhZS03YjU1LTQzNDItYTFjOS02MjIwMmZjNTFhMDkiLCJleHAiOjE3NDk2NjU1MDV9.0X2LY50cfcoMpsTsXSmdl8z65pMSTOPrsKuRvwC4YhI
+    TOKEN: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmY2I4NTZhZS03YjU1LTQzNDItYTFjOS02MjIwMmZjNTFhMDkiLCJleHAiOjE3NDk3MzY3MDh9.7gCcDmErQ8N9gv9kM72W1fr1kGXu6vCeRxbNL7HwUAc
