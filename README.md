@@ -1,208 +1,201 @@
-# 🚀 Rust API - Users Service com Actix Web + PostgreSQL
+# 🚀 Rust API - Users Service com Actix Web + PostgreSQL + MongoDB
 
-Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.rust-lang.org/), utilizando **Actix Web** como framework web e **PostgreSQL** como banco de dados. A aplicação está estruturada de forma modular com foco em boas práticas, segurança e escalabilidade.
+Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.rust-lang.org/), utilizando **Actix Web** como framework web, **PostgreSQL** como banco de dados principal, e **MongoDB** como suporte para sistema de logs estruturados. A aplicação está organizada com foco em modularidade, escalabilidade, segurança e boas práticas.
 
+---
 
 ## ✅ Funcionalidades Implementadas
 
 * ✅ Criar usuário (`POST /api/v1/users/`)
 * ✅ Login e geração de JWT (`POST /api/v1/login/`)
 * ✅ Obter perfil autenticado (`GET /api/v1/me/`)
-* ✅ Módulo de autenticação com middleware
 * ✅ Middleware JWT (`Authorization: Token <JWT>`)
 * ✅ Extração de `user_id` via trait: `req.user_id()?`
 * ✅ Padronização de erros com `AppError`
-* ✅ Repositórios para encapsular acesso ao banco de dados
-* ✅ Armazenamento de dados com PostgreSQL
+* ✅ Sistema de logs com MongoDB
+* ✅ Confirmação de e-mail e redefinição de senha com códigos temporários
+* ✅ Repositórios para encapsular queries SQL
 * ✅ Migrations com SQLx
-* ✅ Hot Reload com `cargo watch`
-* ✅ Estrutura modular (routes, services, models, errors, middleware)
+* ✅ Estrutura modular e escalável
+* ✅ Hot reload com `cargo watch`
 
+---
 
 ## 🚀 Tecnologias
 
-- [Rust](https://www.rust-lang.org/)
-- [Actix Web](https://actix.rs/)
-- [SQLx](https://github.com/launchbadge/sqlx)
-- [PostgreSQL](https://www.postgresql.org/)
-- [JWT](https://jwt.io/)
-- [Tracing](https://github.com/tokio-rs/tracing)
+* [Rust](https://www.rust-lang.org/)
+* [Actix Web](https://actix.rs/)
+* [SQLx](https://github.com/launchbadge/sqlx)
+* [PostgreSQL](https://www.postgresql.org/)
+* [MongoDB](https://www.mongodb.com/)
+* [JWT](https://jwt.io/)
+* [Tera Templates](https://tera.netlify.app/) – para e-mails HTML
+* [Tracing](https://github.com/tokio-rs/tracing)
 
+---
 
 ## 📋 Pré-requisitos
 
-- Rust (última versão estável)
-- PostgreSQL
-- Docker (opcional)
+* Rust (versão estável)
+* PostgreSQL
+* MongoDB
+* Docker (opcional)
+
+---
 
 ## 🔧 Instalação
 
 1. Clone o repositório:
+
 ```bash
 git clone https://github.com/seu-usuario/rust-usecases.git
 cd rust-usecases
 ```
 
 2. Configure o banco de dados:
+
 ```bash
-# Crie um banco PostgreSQL
 createdb rust_usecases
 ```
 
-3. Configure as variáveis de ambiente:
+3. Copie e edite o `.env`:
+
 ```bash
 cp .env.example .env
-# Edite o arquivo .env com suas configurações
 ```
 
-4. Execute as migrações:
+4. Execute as migrations:
+
 ```bash
 sqlx database create
 sqlx migrate run
 ```
 
-5. Execute o projeto:
+5. Rode o projeto:
+
 ```bash
 ./start_server.sh
 ```
+
+---
 
 ## 🏗️ Estrutura do Projeto
 
 ```
 src/
-├── config/         # Configurações da aplicação
-├── db/             # Configuração do banco de dados
-├── errors/         # Tratamento de erros
-├── extensions/     # Extensões do Actix Web
-├── middleware/     # Middlewares (Auth, Rate Limit)
-├── models/         # Modelos de dados
-├── repositories/   # Acesso ao banco de dados
-├── routes/         # Rotas da API
-├── services/       # Lógica de negócio
-└── utils/          # Utilitários (JWT, Validação, Logging)
+├── config/          # Configurações da aplicação
+├── db/              # Inicialização do banco de dados
+├── errors/          # AppError e mapeamento de erros
+├── extensions/      # Traits auxiliares como RequestUserExt
+├── middleware/      # JWT Middleware
+├── models/          # Structs principais (User, Profile, etc)
+├── repositories/    # Acesso ao banco de dados (CRUD SQL)
+├── routes/          # Rotas organizadas por módulo
+├── services/        # Lógica de negócio da aplicação
+├── logs/            # Integração com MongoDB + macros de log
+├── utils/           # Funções auxiliares (JWT, validação, etc)
+└── main.rs          # Entry point
 ```
+
+---
 
 ## 🌟 Funcionalidades
 
-### Autenticação e Autorização
-- Registro de usuários
-- Login com JWT
-- Middleware de autenticação
-- Validação de tokens
+### 🔐 Autenticação
 
-### Configurações
-- Configurações centralizadas com validação
-- Suporte a diferentes ambientes (dev, test, prod)
-- Validação de configurações obrigatórias
-- Tipos fortemente tipados para configurações
+* Login via e-mail/senha
+* JWT Token com expiração configurável
+* Middleware que injeta `Claims` e `user_id` na request
 
-### Validação de Dados
-- Validação de senhas (comprimento, caracteres, números)
-- Validação de emails
-- Validação de documentos
-- Validação de telefones
-- Mensagens de erro personalizadas
+### 👤 Gerenciamento de Usuários
 
-### Sistema de Logs
-- Logs estruturados em JSON (produção)
-- Logs formatados para desenvolvimento
-- Diferentes níveis de log (error, warn, info, debug)
-- Campos estruturados para melhor análise
-- Timestamps em formato RFC3339
-- Informações de contexto (thread, arquivo, linha)
+* Registro com hash de senha
+* Atualização de nome/sobrenome apenas pelo dono do perfil
+* Soft delete (`dt_deleted`)
+* Recuperação e confirmação de e-mail com hash expirável
 
-### Banco de Dados
-- Conexão com PostgreSQL
-- Pool de conexões
-- Transações
-- Queries tipadas
-- Migrations
+### 📬 Templates de E-mail
 
+* Templates renderizados com [Tera](https://tera.netlify.app/)
+* `reset_password.html`, `confirm_email.html`, etc.
+
+### 🧠 Validações
+
+* Customizadas com [validator](https://crates.io/crates/validator)
+* E-mails, senhas, documentos, telefones, etc.
+
+### 📜 Sistema de Logs
+
+* Armazenamento no MongoDB
+* Macro `log_fail!` para falhas com contexto (user\_id, módulo, mensagem)
+* Logs consultáveis via endpoint: `GET /api/v1/logs/?level=Error&limit=10`
+
+### 🧰 Utilitários
+
+* `AppError` unificado com `ResponseError`
+* Macros de log (`log_fail!`, `log_info!`)
+* Trait para acessar dados da request (`RequestUserExt`)
+
+---
+
+## 🔍 Exemplo de Uso de Logs
+
+```rust
+log_fail!(
+    err,
+    LogLevel::Error,
+    "Erro ao buscar usuário",
+    "user_service",
+    Some(user_id),
+    mongo_db
+);
+```
+
+---
 
 ## 🧪 Migrations com SQLx
 
 ```bash
-sqlx migrate run          # Aplica as migrations
-sqlx migrate add <nome>   # Cria nova migration
+sqlx migrate add nome_migration
+sqlx migrate run
 ```
 
+---
 
-## 🔍 Exemplos de Uso
+## 📡 Exemplos de Endpoints
 
-### Configuração de Logs
+| Método | Rota                | Descrição                          | Auth |
+| ------ | ------------------- | ---------------------------------- | ---- |
+| POST   | `/api/v1/users/`    | Criação de usuário                 | ❌    |
+| POST   | `/api/v1/login/`    | Login e geração de token           | ❌    |
+| GET    | `/api/v1/me/`       | Obter dados do usuário logado      | ✅    |
+| PUT    | `/api/v1/users/`    | Atualizar nome/sobrenome           | ✅    |
+| DELETE | `/api/v1/users/`    | Soft delete no próprio usuário     | ✅    |
+| POST   | `/api/v1/profiles/` | Atualizar perfil do usuário logado | ✅    |
+| GET    | `/api/v1/logs/`     | Consultar logs do MongoDB          | ✅    |
+
+---
+
+## ✉️ Templates de E-mail (Tera)
 
 ```rust
-// Em desenvolvimento
-RUST_LOG=debug,rust_usecases=trace cargo run
+let mut ctx = tera::Context::new();
+ctx.insert("name", &user.first_name);
+ctx.insert("link", &reset_link);
 
-// Em produção
-RUST_LOG=info,rust_usecases=debug cargo run
+let body = tera.render("emails/reset_password.html", &ctx)?;
 ```
 
-### Validação de Dados
-
-```rust
-#[derive(Debug, Validate)]
-pub struct UserRequest {
-    #[validate(email(message = "Email inválido"))]
-    pub email: String,
-
-    #[validate(custom = "validate_password")]
-    pub password: String,
-}
-```
-
-### Configurações
-
-```rust
-#[derive(Debug, Validate)]
-pub struct Settings {
-    #[validate]
-    pub database: DatabaseSettings,
-    #[validate]
-    pub jwt: JwtSettings,
-    #[validate]
-    pub server: ServerSettings,
-    pub environment: Environment,
-}
-```
-
-## 📝 Logs
-
-O sistema de logs fornece informações detalhadas sobre o funcionamento da aplicação:
-
-- **Inicialização**: Configurações carregadas, conexão com banco
-- **Autenticação**: Tentativas de login, tokens gerados
-- **Operações**: Criação/atualização de usuários, erros de validação
-- **Erros**: Detalhes de exceções, stack traces
-
-Exemplo de log em produção:
-```json
-{
-  "timestamp": "2024-03-14T12:00:00Z",
-  "level": "info",
-  "message": "Usuário criado com sucesso",
-  "user_id": "123e4567-e89b-12d3-a456-426614174000",
-  "email": "usuario@exemplo.com"
-}
-```
-
-## 🤝 Contribuindo
-
-1. Fork o projeto
-2. Crie sua feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
+---
 
 ## ✍️ Autor
 
 **Roberto Lima**
-[🔗 GitHub](https://github.com/robertolima-dev) — [🌐 Portfólio](https://robertolima-developer.vercel.app/)
+[🔗 GitHub](https://github.com/robertolima-dev) — [🌐 Portfólio](https://robertolima-developer.vercel.app)
 📧 [robertolima.izphera@gmail.com](mailto:robertolima.izphera@gmail.com)
 
+---
 
-## 📄 Licença
+## 📜 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+MIT © 2025 — Livre para uso, estudo e modificação.

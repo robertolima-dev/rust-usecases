@@ -60,7 +60,7 @@ pub async fn list_users(db: &PgPool, limit: i64, offset: i64) -> Result<Vec<User
     )
     .fetch_all(db)
     .await
-    .map_err(|_| AppError::InternalError(Some("Erro ao listar usuários".into())))
+    .map_err(|_| AppError::BadRequest(Some("Erro ao listar usuários".into())))
 }
 
 pub async fn create_user_in_tx(
@@ -95,9 +95,7 @@ pub async fn create_user_in_tx(
                     }
                 }
             }
-            Err(AppError::InternalError(Some(
-                "Erro ao criar usuário".into(),
-            )))
+            Err(AppError::BadRequest(Some("Erro ao criar usuário".into())))
         }
     }
 }
@@ -119,7 +117,7 @@ pub async fn update_user(user_id: Uuid, user: &User, db: &PgPool) -> Result<(), 
     )
     .execute(db)
     .await
-    .map_err(|_| AppError::InternalError(Some("Erro ao atualizar usuário".into())))?;
+    .map_err(|_| AppError::BadRequest(Some("Erro ao atualizar usuário".into())))?;
 
     Ok(())
 }
