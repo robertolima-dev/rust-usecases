@@ -2,7 +2,7 @@ use crate::errors::app_error::AppError;
 use crate::models::auth::LoginRequest;
 use crate::models::user::UserRequest;
 use crate::services::user_public_service;
-use actix_web::{HttpResponse, Responder, post, web};
+use actix_web::{HttpResponse, Responder, post, get, web};
 use mongodb::Database;
 use sqlx::PgPool;
 
@@ -31,4 +31,14 @@ pub async fn login(
         user_public_service::login_user(payload.into_inner(), db.get_ref(), mongo_db.get_ref())
             .await?;
     Ok(web::Json(response))
+}
+
+#[get("/confirm-email/{code}/")]
+pub async fn confirm_email(
+    code: web::Path<String>,
+    db: web::Data<PgPool>,
+    mongo_db: web::Data<Database>,
+) -> Result<HttpResponse, AppError> {
+    user_public_service::confirm_email(&code, db.get_ref(), mongo_db.get_ref()).await?;
+    Ok(HttpResponse::Ok().finish())
 }

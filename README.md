@@ -2,7 +2,6 @@
 
 Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.rust-lang.org/), utilizando **Actix Web** como framework web, **PostgreSQL** como banco de dados principal, e **MongoDB** como suporte para sistema de logs estruturados. A aplicação está organizada com foco em modularidade, escalabilidade, segurança e boas práticas.
 
----
 
 ## ✅ Funcionalidades Implementadas
 
@@ -18,8 +17,8 @@ Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.
 * ✅ Migrations com SQLx
 * ✅ Estrutura modular e escalável
 * ✅ Hot reload com `cargo watch`
+* ✅ Sistema de tokens para ações temporárias (UserToken)
 
----
 
 ## 🚀 Tecnologias
 
@@ -32,7 +31,6 @@ Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.
 * [Tera Templates](https://tera.netlify.app/) – para e-mails HTML
 * [Tracing](https://github.com/tokio-rs/tracing)
 
----
 
 ## 📋 Pré-requisitos
 
@@ -41,7 +39,6 @@ Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.
 * MongoDB
 * Docker (opcional)
 
----
 
 ## 🔧 Instalação
 
@@ -77,7 +74,6 @@ sqlx migrate run
 ./start_server.sh
 ```
 
----
 
 ## 🏗️ Estrutura do Projeto
 
@@ -97,7 +93,6 @@ src/
 └── main.rs          # Entry point
 ```
 
----
 
 ## 🌟 Funcionalidades
 
@@ -113,6 +108,15 @@ src/
 * Atualização de nome/sobrenome apenas pelo dono do perfil
 * Soft delete (`dt_deleted`)
 * Recuperação e confirmação de e-mail com hash expirável
+
+### 🔑 Sistema de Tokens (UserToken)
+
+* Tokens temporários para ações específicas
+* Tipos de token: `confirm_email`, `reset_password`
+* Expiração automática após 180 minutos
+* Controle de consumo único (consumed)
+* Validação de tipo, expiração e consumo
+* Reutilização segura de tokens já consumidos
 
 ### 📬 Templates de E-mail
 
@@ -136,7 +140,6 @@ src/
 * Macros de log (`log_fail!`, `log_info!`)
 * Trait para acessar dados da request (`RequestUserExt`)
 
----
 
 ## 🔍 Exemplo de Uso de Logs
 
@@ -151,7 +154,6 @@ log_fail!(
 );
 ```
 
----
 
 ## 🧪 Migrations com SQLx
 
@@ -160,7 +162,6 @@ sqlx migrate add nome_migration
 sqlx migrate run
 ```
 
----
 
 ## 📡 Exemplos de Endpoints
 
@@ -173,8 +174,8 @@ sqlx migrate run
 | DELETE | `/api/v1/users/`    | Soft delete no próprio usuário     | ✅    |
 | POST   | `/api/v1/profiles/` | Atualizar perfil do usuário logado | ✅    |
 | GET    | `/api/v1/logs/`     | Consultar logs do MongoDB          | ✅    |
+| GET    | `/api/v1/confirm-email/{code}/` | Confirmar email do usuário | ❌    |
 
----
 
 ## ✉️ Templates de E-mail (Tera)
 
@@ -186,7 +187,6 @@ ctx.insert("link", &reset_link);
 let body = tera.render("emails/reset_password.html", &ctx)?;
 ```
 
----
 
 ## ✍️ Autor
 
@@ -194,7 +194,6 @@ let body = tera.render("emails/reset_password.html", &ctx)?;
 [🔗 GitHub](https://github.com/robertolima-dev) — [🌐 Portfólio](https://robertolima-developer.vercel.app)
 📧 [robertolima.izphera@gmail.com](mailto:robertolima.izphera@gmail.com)
 
----
 
 ## 📜 Licença
 
