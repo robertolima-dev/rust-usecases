@@ -84,3 +84,23 @@ pub async fn update_profile_fields_by_user_id(
 
     Ok(())
 }
+
+pub async fn confirm_email(user_id: Uuid, db: &PgPool) -> Result<(), AppError> {
+    sqlx::query!(
+        r#"
+        UPDATE profiles
+        SET confirm_email = true,
+            dt_updated = NOW()
+        WHERE user_id = $1
+        "#,
+        user_id
+    )
+    .execute(db)
+    .await
+    .map_err(|err| {
+        eprintln!("Erro ao confirmar email: {:?}", err);
+        AppError::InternalError(Some("Erro ao confirmar email".into()))
+    })?;
+
+    Ok(())
+}

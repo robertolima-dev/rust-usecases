@@ -7,7 +7,8 @@ use crate::models::{
     profile::Profile,
     user::{User, UserRequest, UserResponse, UserWithProfile},
 };
-use crate::repositories::{profile_repository, user_repository};
+use crate::repositories::{profile_repository, token_repository, user_repository};
+use crate::services::token_service;
 use crate::utils::formatter;
 use crate::utils::jwt::generate_jwt;
 use chrono::Utc;
@@ -68,6 +69,10 @@ pub async fn create_user_with_request(
             return Err(AppError::BadRequest(Some("Erro ao criar o usuario".into())));
         }
     };
+
+    let token_type: &str = "confirm_email";
+    let confirm_email_code = token_service::create_user_token(user_id, token_type, db).await?;
+    println!("confirm_email_code: {}", confirm_email_code);
 
     let user_with_profile = UserWithProfile::from_user_and_profile(user, profile);
 
@@ -209,4 +214,18 @@ pub async fn login_user(
     );
 
     Ok(UserResponse::from(user_with_profile, token, expires_in))
+}
+
+#[allow(unused_variables)]
+pub async fn confirm_email(code: &str, db: &PgPool, mongo_db: &Database) -> Result<(), AppError> {
+    // Valida o token de confirmação de email
+    let token = token_service::get_and_validate_token(code, "confirm_email", db).await?;
+
+    // Marca o token como consumido
+    token_repository::update_token(db, code).await?;
+
+    // Marca o email como confirmado no perfil
+    profile_repository::confirm_email(token.user_id, db).await?;
+
+    Ok(())
 }
