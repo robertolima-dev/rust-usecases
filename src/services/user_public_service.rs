@@ -229,3 +229,46 @@ pub async fn confirm_email(code: &str, db: &PgPool, mongo_db: &Database) -> Resu
 
     Ok(())
 }
+
+#[allow(unused_variables)]
+pub async fn forgot_password(
+    email: &str,
+    db: &PgPool,
+    mongo_db: &Database,
+) -> Result<(), AppError> {
+    // Busca o usuário pelo email
+    let user = user_repository::find_user_by_email(email, db)
+        .await?
+        .ok_or_else(|| AppError::NotFound(Some("Usuário não encontrado".into())))?;
+
+    // Cria um token para mudança de senha
+    let token_type = "change_password";
+    let code = token_service::create_user_token(user.id, token_type, db).await?;
+    println!("code change password: {}", code);
+
+    // Por enquanto apenas retorna Ok, depois implementaremos o envio de email
+    Ok(())
+}
+
+#[allow(unused_variables)]
+pub async fn change_password(
+    code: &str,
+    new_password: &str,
+    db: &PgPool,
+    mongo_db: &Database,
+) -> Result<(), AppError> {
+    // Valida o token de mudança de senha
+    let token = token_service::get_and_validate_token(code, "change_password", db).await?;
+
+    // Hash da nova senha
+    let hashed_password = bcrypt::hash(new_password, bcrypt::DEFAULT_COST)
+        .map_err(|_| AppError::InternalError(Some("Erro ao hashear senha".into())))?;
+
+    // Atualiza a senha do usuário
+    user_repository::update_user_password(db, token.user_id, &hashed_password).await?;
+
+    // Marca o token como consumido
+    token_repository::update_token(db, code).await?;
+
+    Ok(())
+}

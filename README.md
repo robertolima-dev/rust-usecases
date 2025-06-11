@@ -112,11 +112,24 @@ src/
 ### 🔑 Sistema de Tokens (UserToken)
 
 * Tokens temporários para ações específicas
-* Tipos de token: `confirm_email`, `reset_password`
+* Tipos de token: `confirm_email`, `change_password`
 * Expiração automática após 180 minutos
 * Controle de consumo único (consumed)
 * Validação de tipo, expiração e consumo
 * Reutilização segura de tokens já consumidos
+
+### 🔄 Fluxo de Redefinição de Senha
+
+1. Usuário solicita redefinição (`POST /forgot-password/`)
+   - Envia email
+   - Sistema gera token temporário
+   - Token enviado por email (a ser implementado)
+
+2. Usuário redefine senha (`POST /change-password/`)
+   - Envia token e nova senha
+   - Sistema valida token
+   - Atualiza senha e marca token como usado
+   - Retorna sucesso mesmo se token já foi usado
 
 ### 📬 Templates de E-mail
 
@@ -175,6 +188,8 @@ sqlx migrate run
 | POST   | `/api/v1/profiles/` | Atualizar perfil do usuário logado | ✅    |
 | GET    | `/api/v1/logs/`     | Consultar logs do MongoDB          | ✅    |
 | GET    | `/api/v1/confirm-email/{code}/` | Confirmar email do usuário | ❌    |
+| POST   | `/api/v1/forgot-password/` | Solicitar redefinição de senha | ❌    |
+| POST   | `/api/v1/change-password/` | Redefinir senha com token | ❌    |
 
 
 ## ✉️ Templates de E-mail (Tera)

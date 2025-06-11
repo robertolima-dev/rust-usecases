@@ -1,7 +1,7 @@
 // models/auth.rs
+use crate::utils::validation::validate_password;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
-use crate::utils::validation::{validate_email, validate_password};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -11,9 +11,22 @@ pub struct Claims {
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct LoginRequest {
-    #[validate(custom = "validate_email")]
+    #[validate(email)]
     pub email: String,
-    
+
+    #[validate(custom = "validate_password")]
+    pub password: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+pub struct ForgotPasswordRequest {
+    #[validate(email)]
+    pub email: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Validate)]
+pub struct ChangePasswordRequest {
+    pub code: String,
     #[validate(custom = "validate_password")]
     pub password: String,
 }
