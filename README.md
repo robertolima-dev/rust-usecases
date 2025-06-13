@@ -1,6 +1,6 @@
-# 🚀 Rust API - Users Service com Actix Web + PostgreSQL + MongoDB
+# 🚀 Rust API - Actix Web + PostgreSQL + MongoDB + ElasticSearch
 
-Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.rust-lang.org/), utilizando **Actix Web** como framework web, **PostgreSQL** como banco de dados principal, e **MongoDB** como suporte para sistema de logs estruturados. A aplicação está organizada com foco em modularidade, escalabilidade, segurança e boas práticas.
+Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.rust-lang.org/), utilizando **Actix Web** como framework web, **PostgreSQL** como banco de dados principal, **MongoDB** como suporte para sistema de logs estruturados e **Elasticsearch** para busca full-text. A aplicação está organizada com foco em modularidade, escalabilidade, segurança e boas práticas.
 
 
 ## ✅ Funcionalidades Implementadas
@@ -18,6 +18,7 @@ Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.
 * ✅ Estrutura modular e escalável
 * ✅ Hot reload com `cargo watch`
 * ✅ Sistema de tokens para ações temporárias (UserToken)
+* ✅ Módulo de cursos com busca full-text no Elasticsearch
 
 
 ## 🚀 Tecnologias
@@ -27,6 +28,7 @@ Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.
 * [SQLx](https://github.com/launchbadge/sqlx)
 * [PostgreSQL](https://www.postgresql.org/)
 * [MongoDB](https://www.mongodb.com/)
+* [Elasticsearch](https://www.elastic.co/)
 * [JWT](https://jwt.io/)
 * [Tera Templates](https://tera.netlify.app/) – para e-mails HTML
 * [Tracing](https://github.com/tokio-rs/tracing)
@@ -153,6 +155,26 @@ src/
 * Macros de log (`log_fail!`, `log_info!`)
 * Trait para acessar dados da request (`RequestUserExt`)
 
+### 📚 Módulo de Cursos
+
+* Gerenciamento completo de cursos
+* Sincronização bidirecional com Elasticsearch
+* Busca full-text com paginação
+* Endpoints:
+  * `POST /api/v1/courses/` - Criar curso
+  * `PUT /api/v1/courses/{id}/` - Atualizar curso
+  * `GET /api/v1/courses/` - Buscar cursos
+
+#### 🔍 Integração com Elasticsearch
+
+* Índice dinâmico com prefixo configurável
+* Sincronização automática ao criar/atualizar
+* Busca full-text em múltiplos campos
+* Paginação de resultados
+* Configuração via variáveis de ambiente:
+  * `ELASTICSEARCH_URL`
+  * `ELASTICSEARCH_INDEX_PREFIX`
+
 
 ## 🔍 Exemplo de Uso de Logs
 
@@ -190,6 +212,9 @@ sqlx migrate run
 | GET    | `/api/v1/confirm-email/{code}/` | Confirmar email do usuário | ❌    |
 | POST   | `/api/v1/forgot-password/` | Solicitar redefinição de senha | ❌    |
 | POST   | `/api/v1/change-password/` | Redefinir senha com token | ❌    |
+| POST   | `/api/v1/courses/`  | Criar novo curso                   | ✅    |
+| PUT    | `/api/v1/courses/{id}/` | Atualizar curso existente    | ✅    |
+| GET    | `/api/v1/courses/`  | Buscar cursos (full-text)          | ✅    |
 
 
 ## ✉️ Templates de E-mail (Tera)
