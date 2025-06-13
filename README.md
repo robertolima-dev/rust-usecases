@@ -204,14 +204,14 @@ sqlx migrate run
 | ------ | ------------------- | ---------------------------------- | ---- |
 | POST   | `/api/v1/users/`    | Criação de usuário                 | ❌    |
 | POST   | `/api/v1/login/`    | Login e geração de token           | ❌    |
+| GET    | `/api/v1/confirm-email/{code}/` | Confirmar email do usuário | ❌    |
+| POST   | `/api/v1/forgot-password/` | Solicitar redefinição de senha | ❌    |
+| POST   | `/api/v1/change-password/` | Redefinir senha com token | ❌    |
 | GET    | `/api/v1/me/`       | Obter dados do usuário logado      | ✅    |
 | PUT    | `/api/v1/users/`    | Atualizar nome/sobrenome           | ✅    |
 | DELETE | `/api/v1/users/`    | Soft delete no próprio usuário     | ✅    |
 | POST   | `/api/v1/profiles/` | Atualizar perfil do usuário logado | ✅    |
 | GET    | `/api/v1/logs/`     | Consultar logs do MongoDB          | ✅    |
-| GET    | `/api/v1/confirm-email/{code}/` | Confirmar email do usuário | ❌    |
-| POST   | `/api/v1/forgot-password/` | Solicitar redefinição de senha | ❌    |
-| POST   | `/api/v1/change-password/` | Redefinir senha com token | ❌    |
 | POST   | `/api/v1/courses/`  | Criar novo curso                   | ✅    |
 | PUT    | `/api/v1/courses/{id}/` | Atualizar curso existente    | ✅    |
 | GET    | `/api/v1/courses/`  | Buscar cursos (full-text)          | ✅    |
