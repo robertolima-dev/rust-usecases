@@ -166,3 +166,28 @@ pub async fn soft_delete_user(db: &PgPool, user_id: Uuid) -> Result<u64> {
 
     Ok(result.rows_affected())
 }
+
+pub async fn update_user_password(
+    db: &PgPool,
+    user_id: Uuid,
+    hashed_password: &str,
+) -> Result<(), AppError> {
+    sqlx::query!(
+        r#"
+        UPDATE users
+        SET password = $1,
+            dt_updated = NOW()
+        WHERE id = $2
+        "#,
+        hashed_password,
+        user_id
+    )
+    .execute(db)
+    .await
+    .map_err(|err| {
+        eprintln!("Erro ao atualizar senha: {:?}", err);
+        AppError::InternalError(Some("Erro ao atualizar senha".into()))
+    })?;
+
+    Ok(())
+}

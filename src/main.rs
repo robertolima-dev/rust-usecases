@@ -13,15 +13,20 @@ mod utils;
 #[macro_use]
 pub mod macros;
 
+use crate::config::get_settings;
+use anyhow::Result;
 use config::init_settings;
 use db::mongo::init_mongodb;
 use db::postgres::get_db_pool;
+use elasticsearch::Elasticsearch;
+use elasticsearch::http::transport::Transport;
 use routes::configure::api_v1_scope;
 use tracing::info;
 use tracing_actix_web::TracingLogger;
 
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
+// #[actix_web::main]
+#[tokio::main]
+async fn main() -> Result<()> {
     dotenvy::dotenv().ok();
 
     // Inicializa as configurações
@@ -31,9 +36,12 @@ async fn main() -> std::io::Result<()> {
     utils::setup_development_logging().expect("Falha ao configurar logs");
 
     // Obtém as configurações
-    let settings = config::get_settings();
+    let settings = get_settings();
     let pool = get_db_pool().await;
     let mongo_db = init_mongodb().await.unwrap();
+
+    let transport = Transport::single_node(&settings.elasticsearch.url)?;
+    let elastic_client = Elasticsearch::new(transport);
 
     info!(
         host = %settings.server.host,
@@ -47,9 +55,12 @@ async fn main() -> std::io::Result<()> {
             .wrap(TracingLogger::default())
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(mongo_db.clone()))
+            .app_data(web::Data::new(elastic_client.clone()))
             .service(api_v1_scope())
     })
     .bind((settings.server.host, settings.server.port))?
     .run()
-    .await
+    .await?;
+
+    Ok(())
 }
