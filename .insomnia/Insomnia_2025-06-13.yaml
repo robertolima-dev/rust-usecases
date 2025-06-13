@@ -93,7 +93,7 @@ collection:
             meta:
               id: req_2875cf0f9e4b4f239b389174bd7e3b26
               created: 1749577697378
-              modified: 1749652657631
+              modified: 1749673815597
               isPrivate: false
               sortKey: -1749256360435.5
             method: PATCH
@@ -102,7 +102,7 @@ collection:
               text: |-
                 {
                 	"first_name": "Roberto",
-                	"last_name": "Lima"
+                	"last_name": "Lima UP"
                 }
             headers:
               - name: Content-Type
@@ -165,7 +165,7 @@ collection:
             meta:
               id: req_ab4fc7e3bee1421a921bf7cece4d4f6c
               created: 1749322097549
-              modified: 1749653861665
+              modified: 1749759226232
               isPrivate: false
               sortKey: -1749432410109.75
             method: POST
@@ -173,7 +173,7 @@ collection:
               mimeType: application/json
               text: |-
                 {
-                  "email": "robertolima.izphera+user18@gmail.com",
+                  "email": "robertolima.izphera+user22@gmail.com",
                   "first_name": "Roberto",
                   "last_name": "Lima",
                   "password": "senha123"
@@ -196,7 +196,7 @@ collection:
             meta:
               id: req_cd39ebcd3541409f85aec28612b15b51
               created: 1749469187452
-              modified: 1749655991435
+              modified: 1749673908252
               isPrivate: false
               sortKey: -1749469187452
             method: POST
@@ -204,8 +204,91 @@ collection:
               mimeType: application/json
               text: |-
                 {
-                  "email": "robertolima.izphera+user6A@gmail.com",
+                  "email": "robertolima.izphera+user21@gmail.com",
                   "password": "senha123"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.0
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.URL
+              }}/v1/confirm-email/tL2H3VIyN5wN7g6oKBScKE2hj7h2vXgoua16QzIVzPUYB\
+              m5z4WKiwqjS377f0EHE/"
+            name: confirm email
+            meta:
+              id: req_dd9d34faf94941bd82b0e677b701b28f
+              created: 1749667841184
+              modified: 1749668882397
+              isPrivate: false
+              sortKey: -1749377244146.375
+            method: GET
+            body:
+              mimeType: application/json
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.0
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.URL }}/v1/forgot-password/"
+            name: forgot password
+            meta:
+              id: req_13e142f916454f4ba9733bccf0473dec
+              created: 1749670348240
+              modified: 1749670376556
+              isPrivate: false
+              sortKey: -1749404827128.0625
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "email": "robertolima.izphera+user21@gmail.com"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/11.0.0
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.URL }}/v1/change-password/"
+            name: change password
+            meta:
+              id: req_a303b7276fdd4a7ebecb22ecde76dcae
+              created: 1749670487850
+              modified: 1749673900089
+              isPrivate: false
+              sortKey: -1749391035637.2188
+            method: POST
+            body:
+              mimeType: application/json
+              text: >-
+                {
+                  "code": "nPPTxYtyhQsq0EkfneuMjxEoFj8wfsYbbTx5W8Ytzkf9vjqOSm138cdTr74EJuut",
+                	"password": "senha123"
                 }
             headers:
               - name: Content-Type
@@ -276,18 +359,18 @@ collection:
             meta:
               id: req_f8105dd5c8b64f528bcb959d2cf4730b
               created: 1749646730184
-              modified: 1749655536533
+              modified: 1749660916934
               isPrivate: false
               sortKey: -1749646730184
             method: GET
             parameters:
               - id: pair_cb8e2ba623e247a8bd5038c33ec56b8e
                 name: level
-                value: error
+                value: warn
                 disabled: true
               - id: pair_bfae23df79e841f482cb94c1e9f94e0d
                 name: module
-                value: user_service
+                value: auth_service
                 disabled: true
               - id: pair_2bb6dee1961649f7a7207635dbc47600
                 name: limit
@@ -313,6 +396,156 @@ collection:
                 send: true
                 store: true
               rebuildPath: true
+      - name: COURSE
+        meta:
+          id: fld_b9b6c90dd82e40fe939fcf8d07403d80
+          created: 1749756619609
+          modified: 1749756619609
+          sortKey: -1749756619609
+        children:
+          - url: "{{ _.URL }}/v1/courses/"
+            name: create
+            meta:
+              id: req_6d5eb39a7b054aacbcc38547b6c2d1aa
+              created: 1749756639388
+              modified: 1749820080865
+              isPrivate: false
+              sortKey: -1749756655463
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "name": "Curso de Rust",
+                  "description": "Aprenda Rust do zero",
+                  "is_active": true,
+                  "price": 299.99,
+                  "month_duration": 6,
+                  "dt_start": "2025-06-10"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+                id: pair_067ed2ca085e48a98796e552d1f52856
+              - name: User-Agent
+                value: insomnia/11.0.0
+                id: pair_b6d4fcea1e5443f19e7a0fc7af6e0329
+              - id: pair_2ee93e04cfe547eca92303d9cb6e15e6
+                name: Authorization
+                value: Token {{ _.TOKEN }}
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.URL }}/v1/courses/2823218f-d3aa-47de-83a7-6e2d03757186/"
+            name: update
+            meta:
+              id: req_13557d19a2f4458d9a1b94fd47026a95
+              created: 1749820064916
+              modified: 1749828362867
+              isPrivate: false
+              sortKey: -1749742914803.125
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"id": "2823218f-d3aa-47de-83a7-6e2d03757186",
+                	"name": "Curso de Rust 3.0",
+                	"description": "Aprenda Rust do zero",
+                	"is_active": true,
+                	"price": 289.99,
+                	"month_duration": 6,
+                	"author_id": "4352fa3f-86b1-4dca-a96b-ac0c5a9e3b6d",
+                	"dt_start": "2025-06-10",
+                	"dt_created": "2025-06-12T20:22:22.985670",
+                	"dt_updated": "2025-06-12T20:22:22.985670",
+                	"dt_deleted": null
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+                id: pair_067ed2ca085e48a98796e552d1f52856
+              - name: User-Agent
+                value: insomnia/11.0.0
+                id: pair_b6d4fcea1e5443f19e7a0fc7af6e0329
+              - id: pair_2ee93e04cfe547eca92303d9cb6e15e6
+                name: Authorization
+                value: Token {{ _.TOKEN }}
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.URL }}/v1/courses/"
+            name: list
+            meta:
+              id: req_89132772ea604f9dafcb7ce92e4cd2fb
+              created: 1749825201000
+              modified: 1749828364385
+              isPrivate: false
+              sortKey: -1749756655563
+            method: GET
+            body:
+              mimeType: application/json
+            headers:
+              - name: Content-Type
+                value: application/json
+                id: pair_067ed2ca085e48a98796e552d1f52856
+              - name: User-Agent
+                value: insomnia/11.0.0
+                id: pair_b6d4fcea1e5443f19e7a0fc7af6e0329
+              - id: pair_2ee93e04cfe547eca92303d9cb6e15e6
+                name: Authorization
+                value: Token {{ _.TOKEN }}
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.URL }}/v1/courses/2823218f-d3aa-47de-83a7-6e2d03757186/"
+            name: delete
+            meta:
+              id: req_b2f3aefc0bda4bbeaeac586d8db94202
+              created: 1749828350952
+              modified: 1749828368463
+              isPrivate: false
+              sortKey: -1749701692773.5
+            method: DELETE
+            body:
+              mimeType: application/json
+            headers:
+              - name: Content-Type
+                value: application/json
+                id: pair_067ed2ca085e48a98796e552d1f52856
+              - name: User-Agent
+                value: insomnia/11.0.0
+                id: pair_b6d4fcea1e5443f19e7a0fc7af6e0329
+              - id: pair_2ee93e04cfe547eca92303d9cb6e15e6
+                name: Authorization
+                value: Token {{ _.TOKEN }}
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
 cookieJar:
   name: Default Jar
   meta:
@@ -324,8 +557,8 @@ environments:
   meta:
     id: env_90563274783f080e258c5e2212f8f9e842e91d21
     created: 1749322017935
-    modified: 1749650317058
+    modified: 1749820037817
     isPrivate: false
   data:
     URL: http://localhost:8080/api
-    TOKEN: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmY2I4NTZhZS03YjU1LTQzNDItYTFjOS02MjIwMmZjNTFhMDkiLCJleHAiOjE3NDk3MzY3MDh9.7gCcDmErQ8N9gv9kM72W1fr1kGXu6vCeRxbNL7HwUAc
+    TOKEN: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MzUyZmEzZi04NmIxLTRkY2EtYTk2Yi1hYzBjNWE5ZTNiNmQiLCJleHAiOjE3NDk5MDU0NzJ9.42aJ4RrjRDm7CrBvvAzkKD6nU9TrAm20W8IXWCToiTA
