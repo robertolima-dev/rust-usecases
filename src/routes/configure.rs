@@ -1,31 +1,30 @@
 use crate::logs::routes::get_logs;
 use crate::middleware::auth_middleware::AuthMiddleware;
-use crate::routes::course_routes::{create_course, list_courses, update_course};
-use crate::routes::profile_routes::update_profile;
-use crate::routes::user_private_routes::{delete_user, get_me, list_users, update_user};
-use crate::routes::user_public_routes::{
-    change_password, confirm_email, create_user, forgot_password, login,
-};
+use crate::routes::course_routes;
+use crate::routes::profile_routes;
+use crate::routes::user_private_routes;
+use crate::routes::user_public_routes;
 use actix_web::{Scope, web};
 
 pub fn api_v1_scope() -> Scope {
     web::scope("/api/v1")
-        .service(login)
-        .service(create_user)
-        .service(confirm_email)
-        .service(forgot_password)
-        .service(change_password)
+        .service(user_public_routes::login)
+        .service(user_public_routes::create_user)
+        .service(user_public_routes::confirm_email)
+        .service(user_public_routes::forgot_password)
+        .service(user_public_routes::change_password)
         .service(
             web::scope("") // escopo vazio herda o "/api/v1"
                 .wrap(AuthMiddleware)
                 .service(get_logs)
-                .service(get_me)
-                .service(list_users)
-                .service(update_user)
-                .service(delete_user)
-                .service(update_profile)
-                .service(create_course)
-                .service(list_courses)
-                .service(update_course),
+                .service(user_private_routes::get_me)
+                .service(user_private_routes::list_users)
+                .service(user_private_routes::update_user)
+                .service(user_private_routes::delete_user)
+                .service(profile_routes::update_profile)
+                .service(course_routes::create_course)
+                .service(course_routes::list_courses)
+                .service(course_routes::update_course)
+                .service(course_routes::delete_course),
         )
 }

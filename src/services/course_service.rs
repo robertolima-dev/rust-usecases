@@ -1,13 +1,11 @@
 use crate::config::get_settings;
 use crate::errors::app_error::AppError;
 use crate::models::course::{
-    Course, CourseQuery, CourseSearchHit, CreateCourseRequest, PaginatedCourseResponse,
-    UpdateCourseRequest,
+    Course, CourseQuery, CreateCourseRequest, PaginatedCourseResponse, UpdateCourseRequest,
 };
 use crate::repositories::course_repository;
 use chrono::Utc;
 use elasticsearch::{Elasticsearch, IndexParts, SearchParts};
-use futures::TryStreamExt;
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -182,4 +180,32 @@ pub async fn search_courses(
         results: hits,
         count,
     })
+}
+
+pub async fn delete_course(
+    db: &sqlx::PgPool,
+    es: &Elasticsearch,
+    course_id: Uuid,
+) -> Result<(), AppError> {
+    // 1. Soft delete no Postgres
+    course_repository::soft_delete_course_by_id(db, course_id).await?;
+
+    // 2. Remoção do Elasticsearch
+    let settings = get_settings();
+    let index = format!("{}_courses", settings.elasticsearch.index_prefix);
+
+    let response = es
+        .delete(elasticsearch::DeleteParts::IndexId(
+            &index,
+            &course_id.to_string(),
+        ))
+        .send()
+        .await;
+
+    if let Err(e) = response {
+        eprintln!("Erro ao remover índice do Elasticsearch: {:?}", e);
+        // Não causará erro HTTP, mas será registrado.
+    }
+
+    Ok(())
 }
