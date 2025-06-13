@@ -36,8 +36,15 @@ pub struct ServerSettings {
     pub port: u16,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub struct ElasticsearchSettings {
+    pub url: String,
+    pub index_prefix: String, // novo campo
+}
+
 #[derive(Debug, Clone, Deserialize, Validate)]
 pub struct Settings {
+    pub elasticsearch: ElasticsearchSettings,
     #[validate]
     pub database: DatabaseSettings,
     #[validate]
@@ -84,6 +91,11 @@ impl Settings {
             .parse()?;
 
         let settings = Settings {
+            elasticsearch: ElasticsearchSettings {
+                url: env::var("ELASTICSEARCH_URL").map_err(|_| "ELASTICSEARCH_URL não definida")?,
+                index_prefix: env::var("ELASTICSEARCH_INDEX_PREFIX")
+                    .map_err(|_| "ELASTICSEARCH_INDEX_PREFIX não definida")?,
+            },
             database: DatabaseSettings {
                 url: env::var("DATABASE_URL").map_err(|_| "DATABASE_URL não definida")?,
                 max_connections: env::var("DATABASE_MAX_CONNECTIONS")
