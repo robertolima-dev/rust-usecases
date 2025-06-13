@@ -1,6 +1,6 @@
 use crate::errors::app_error::AppError;
 use crate::models::course::{Course, UpdateCourseRequest};
-use sqlx::{Error, PgPool, Postgres, Transaction};
+use sqlx::{Error, PgPool, Postgres, Transaction, types::chrono::Utc};
 use uuid::Uuid;
 
 pub async fn find_course_by_id(id: Uuid, db: &PgPool) -> Result<Course, AppError> {
@@ -78,4 +78,30 @@ pub async fn update_course(
     .await?;
 
     Ok(course)
+}
+
+pub async fn soft_delete_course_by_id(db: &PgPool, course_id: Uuid) -> Result<(), AppError> {
+    let now = Utc::now().naive_utc();
+
+    let result = sqlx::query!(
+        r#"
+        UPDATE courses
+        SET dt_deleted = $1, dt_updated = $1
+        WHERE id = $2
+        "#,
+        now,
+        course_id
+    )
+    .execute(db)
+    .await
+    .map_err(|e| {
+        eprintln!("Erro ao deletar curso: {e:?}");
+        AppError::InternalError(Some("Erro ao deletar curso".into()))
+    })?;
+
+    if result.rows_affected() == 0 {
+        return Err(AppError::NotFound(Some("Curso não encontrado".into())));
+    }
+
+    Ok(())
 }
