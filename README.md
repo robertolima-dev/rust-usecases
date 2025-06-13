@@ -215,6 +215,7 @@ sqlx migrate run
 | POST   | `/api/v1/courses/`  | Criar novo curso                   | ✅    |
 | PUT    | `/api/v1/courses/{id}/` | Atualizar curso existente    | ✅    |
 | GET    | `/api/v1/courses/`  | Buscar cursos (full-text)          | ✅    |
+| DELETE    | `/api/v1/courses/{id}`  | Soft delete de cursos       | ✅    |
 
 
 ## ✉️ Templates de E-mail (Tera)
