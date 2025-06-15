@@ -8,6 +8,7 @@ use crate::models::{
     user::{User, UserRequest, UserResponse, UserWithProfile},
 };
 use crate::repositories::{profile_repository, token_repository, user_repository};
+#[allow(unused_imports)]
 use crate::services::email_service::EmailService;
 use crate::services::token_service;
 use crate::utils::formatter;

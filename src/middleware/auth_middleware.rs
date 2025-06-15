@@ -1,18 +1,12 @@
 use crate::config::get_settings;
+use crate::models::auth::Claims;
 use actix_web::body::BoxBody;
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready};
 use actix_web::{Error, HttpMessage, HttpResponse};
 use futures::future::{LocalBoxFuture, Ready, ok};
 use jsonwebtoken::{DecodingKey, Validation, decode};
-use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 use tracing::{error, info, warn};
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Claims {
-    pub sub: String,
-    pub exp: usize,
-}
 
 pub struct AuthMiddleware;
 
