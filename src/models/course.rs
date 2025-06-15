@@ -39,11 +39,15 @@ pub struct UpdateCourseRequest {
 
 #[derive(Debug, Deserialize)]
 pub struct CourseQuery {
+    pub author_id: Option<Uuid>,
+    pub limit: Option<usize>,
+    pub offset: Option<usize>,
     pub name: Option<String>,
     pub is_active: Option<bool>,
-    pub author_id: Option<Uuid>,
-    pub limit: Option<u64>,
-    pub offset: Option<u64>,
+    pub min_price: Option<f64>,
+    pub max_price: Option<f64>,
+    pub start_from: Option<NaiveDate>,
+    pub month_duration: Option<i32>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
