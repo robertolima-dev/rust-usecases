@@ -8,6 +8,7 @@ use crate::models::{
     user::{User, UserRequest, UserResponse, UserWithProfile},
 };
 use crate::repositories::{profile_repository, token_repository, user_repository};
+use crate::services::email_service::EmailService;
 use crate::services::token_service;
 use crate::utils::formatter;
 use crate::utils::jwt::generate_jwt;
@@ -245,6 +246,12 @@ pub async fn forgot_password(
     let token_type = "change_password";
     let code = token_service::create_user_token(user.id, token_type, db).await?;
     println!("code change password: {}", code);
+
+    // let email_service = EmailService::new("no-reply@seusite.com".into()).await?;
+    // let email_link = format!("https://seusite.com/reset?token={}", code);
+    // email_service
+    //     .send_reset_password(email, &user.first_name, &email_link)
+    //     .await?;
 
     // Por enquanto apenas retorna Ok, depois implementaremos o envio de email
     Ok(())

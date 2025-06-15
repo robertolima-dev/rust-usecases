@@ -1,6 +1,7 @@
 use crate::logs::routes::get_logs;
 use crate::middleware::auth_middleware::AuthMiddleware;
 use crate::routes::course_routes;
+use crate::routes::notification_routes;
 use crate::routes::profile_routes;
 use crate::routes::user_private_routes;
 use crate::routes::user_public_routes;
@@ -25,6 +26,7 @@ pub fn api_v1_scope() -> Scope {
                 .service(course_routes::create_course)
                 .service(course_routes::list_courses)
                 .service(course_routes::update_course)
+                .service(notification_routes::list_notifications)
                 .service(course_routes::delete_course),
         )
 }

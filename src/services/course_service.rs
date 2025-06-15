@@ -3,7 +3,9 @@ use crate::errors::app_error::AppError;
 use crate::models::course::{
     Course, CourseQuery, CreateCourseRequest, PaginatedCourseResponse, UpdateCourseRequest,
 };
+use crate::models::notification::ObjCodeType;
 use crate::repositories::course_repository;
+use crate::repositories::notification_repository;
 use chrono::Utc;
 use elasticsearch::{Elasticsearch, IndexParts, SearchParts};
 use serde_json::{Value, json};
@@ -59,6 +61,16 @@ pub async fn create_course_service(
         .body(doc)
         .send()
         .await?;
+
+    notification_repository::create_notification(
+        "Novo curso criado",
+        &format!("O curso '{}' foi criado com sucesso!", course.name),
+        ObjCodeType::Platform,
+        None,
+        db,
+    )
+    .await
+    .map_err(|e| anyhow::anyhow!(e.to_string()))?;
 
     Ok(course)
 }
@@ -141,6 +153,36 @@ pub async fn search_courses(
             "term": {
                 "author_id": author_id.to_string()
             }
+        }));
+    }
+
+    if let Some(min_price) = query.min_price {
+        must_clauses.push(json!({
+            "range": {
+                "price": { "gte": min_price }
+            }
+        }));
+    }
+
+    if let Some(max_price) = query.max_price {
+        must_clauses.push(json!({
+            "range": {
+                "price": { "lte": max_price }
+            }
+        }));
+    }
+
+    if let Some(start_from) = query.start_from {
+        must_clauses.push(json!({
+            "range": {
+                "dt_start": { "gte": start_from.format("%Y-%m-%d").to_string() }
+            }
+        }));
+    }
+
+    if let Some(month_duration) = query.month_duration {
+        must_clauses.push(json!({
+            "term": { "month_duration": month_duration }
         }));
     }
 
