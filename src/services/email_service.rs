@@ -3,12 +3,14 @@ use aws_sdk_sesv2::Client;
 use aws_sdk_sesv2::config::BehaviorVersion;
 use tera::{Context, Tera};
 
+#[allow(dead_code)]
 pub struct EmailService {
     ses_client: Client,
     tera: Tera,
     sender_email: String,
 }
 
+#[allow(dead_code)]
 impl EmailService {
     pub async fn new(sender_email: String) -> Result<Self, AppError> {
         let config = aws_config::load_defaults(BehaviorVersion::latest()).await;

@@ -1,5 +1,6 @@
 use crate::errors::app_error::AppError;
 use crate::models::notification::{Notification, ObjCodeType};
+use chrono::Utc;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
 
@@ -9,18 +10,25 @@ pub async fn create_notification(
     obj_code: ObjCodeType,
     obj_id: Option<Uuid>,
     db: &PgPool,
-) -> Result<(), AppError> {
-    let id = Uuid::new_v4();
+) -> Result<Notification, AppError> {
+    let notification = Notification {
+        id: Uuid::new_v4(),
+        title: title.to_string(),
+        message: message.to_string(),
+        obj_code,
+        obj_id,
+        created_at: Utc::now().naive_utc(),
+    };
     sqlx::query!(
         r#"
         INSERT INTO notifications (id, title, message, obj_code, obj_id, created_at)
         VALUES ($1, $2, $3, $4::obj_code_type, $5, NOW())
         "#,
-        id,
-        title,
-        message,
-        obj_code as ObjCodeType,
-        obj_id
+        notification.id,
+        notification.title,
+        notification.message,
+        notification.obj_code.clone() as ObjCodeType,
+        notification.obj_id
     )
     .execute(db)
     .await
@@ -29,7 +37,7 @@ pub async fn create_notification(
         AppError::InternalError(Some("Falha ao criar notificação".into()))
     })?;
 
-    Ok(())
+    Ok(notification)
 }
 
 pub async fn list_notifications_for_user_or_platform(

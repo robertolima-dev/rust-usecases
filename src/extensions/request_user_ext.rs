@@ -1,5 +1,5 @@
 use crate::errors::app_error::AppError;
-use crate::middleware::auth_middleware::Claims;
+use crate::models::auth::Claims;
 use actix_web::HttpMessage;
 use actix_web::HttpRequest;
 use uuid::Uuid;
