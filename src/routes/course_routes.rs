@@ -1,8 +1,9 @@
-// src/routes/course_routes.rs
 use crate::errors::app_error::AppError;
 use crate::extensions::request_user_ext::RequestUserExt;
 use crate::models::course::{CourseQuery, CreateCourseRequest, UpdateCourseRequest};
 use crate::services::course_service;
+use crate::websocket::server::WsServer;
+use actix::Addr;
 use actix_web::{HttpRequest, HttpResponse, delete, get, post, put, web};
 use elasticsearch::Elasticsearch;
 use sqlx::PgPool;
@@ -14,6 +15,7 @@ pub async fn create_course(
     payload: web::Json<CreateCourseRequest>,
     db: web::Data<PgPool>,
     es: web::Data<Elasticsearch>,
+    ws_server: web::Data<Addr<WsServer>>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let user_id = req.user_id()?;
 
@@ -22,6 +24,7 @@ pub async fn create_course(
         user_id,
         db.get_ref(),
         es.get_ref(),
+        ws_server,
     )
     .await
     .map_err(|e| {

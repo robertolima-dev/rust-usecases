@@ -64,9 +64,7 @@ async fn main() -> Result<()> {
                     .app_data(web::Data::new(pool.clone()))
                     .app_data(web::Data::new(mongo_db.clone()))
                     .app_data(web::Data::new(elastic_client.clone()))
-                    .app_data(web::Data::new(AppState {
-                        ws_server: ws_server.clone(),
-                    }))
+                    .app_data(web::Data::new(ws_server.clone()))
                     .service(api_v1_scope())
             })
             .bind((settings.server.host.clone(), settings.server.port))?

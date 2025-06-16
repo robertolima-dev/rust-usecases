@@ -5,6 +5,7 @@ use crate::routes::notification_routes;
 use crate::routes::profile_routes;
 use crate::routes::user_private_routes;
 use crate::routes::user_public_routes;
+use crate::websocket::routes::websocket_entry;
 use actix_web::{Scope, web};
 
 pub fn api_v1_scope() -> Scope {
@@ -14,6 +15,7 @@ pub fn api_v1_scope() -> Scope {
         .service(user_public_routes::confirm_email)
         .service(user_public_routes::forgot_password)
         .service(user_public_routes::change_password)
+        .service(websocket_entry)
         .service(
             web::scope("") // escopo vazio herda o "/api/v1"
                 .wrap(AuthMiddleware)
