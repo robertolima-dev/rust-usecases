@@ -5,7 +5,10 @@ use crate::models::course::{
 };
 use crate::models::notification::ObjCodeType;
 use crate::repositories::course_repository;
-use crate::repositories::notification_repository;
+use crate::services::notification_service;
+use crate::websocket::server::WsServer;
+use actix::Addr;
+use actix_web::web;
 use chrono::Utc;
 use elasticsearch::{Elasticsearch, IndexParts, SearchParts};
 use serde_json::{Value, json};
@@ -17,6 +20,7 @@ pub async fn create_course_service(
     author_id: Uuid,
     db: &PgPool,
     es_client: &Elasticsearch,
+    ws_server: web::Data<Addr<WsServer>>,
 ) -> Result<Course, anyhow::Error> {
     println!("payload: {:?}", payload);
     let now = Utc::now().naive_utc();
@@ -62,15 +66,16 @@ pub async fn create_course_service(
         .send()
         .await?;
 
-    notification_repository::create_notification(
-        "Novo curso criado",
-        &format!("O curso '{}' foi criado com sucesso!", course.name),
+    // Cria notificação no Postgres e dispara via WebSocket
+    notification_service::create_notification_and_emit(
+        "Novo Curso Criado",
+        &format!("Curso '{}' foi criado com sucesso", course.name),
         ObjCodeType::Platform,
         None,
         db,
+        ws_server,
     )
-    .await
-    .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+    .await?;
 
     Ok(course)
 }
