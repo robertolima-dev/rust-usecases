@@ -1,4 +1,4 @@
-# 🚀 Rust API - Actix Web + PostgreSQL + MongoDB + ElasticSearch
+# 🚀 Rust API - Actix Web + PostgreSQL + MongoDB + ElasticSearch + WebSocket
 
 Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.rust-lang.org/), utilizando **Actix Web** como framework web, **PostgreSQL** como banco de dados principal, **MongoDB** como suporte para sistema de logs estruturados e **Elasticsearch** para busca full-text. A aplicação está organizada com foco em modularidade, escalabilidade, segurança e boas práticas.
 
@@ -174,6 +174,103 @@ src/
 * Configuração via variáveis de ambiente:
   * `ELASTICSEARCH_URL`
   * `ELASTICSEARCH_INDEX_PREFIX`
+
+
+## 🔔 WebSocket - Notificações em Tempo Real
+
+A aplicação possui um **WebSocket server interno**, usando **Actix Actors**, que permite enviar mensagens para usuários específicos ou realizar broadcasts para todos os usuários conectados.
+
+---
+
+### 📡 Endereço WebSocket:
+
+```
+ws://localhost:8080/api/v1/ws/?token=<JWT_TOKEN>
+```
+
+* O token JWT é passado na **query string** como `?token=...`.
+* O middleware valida o token antes de estabelecer a conexão.
+
+---
+
+### 📲 Como testar localmente com `wscat` (ou outro cliente WebSocket):
+
+> Se ainda não tiver o `wscat`:
+
+```bash
+npm install -g wscat
+```
+
+#### ✅ Exemplo de conexão:
+
+```bash
+wscat -c "ws://localhost:8080/api/v1/ws/?token=eyJhbGciOiJIUzI1NiJ9..."
+```
+
+Se o token for válido, a conexão será aceita.
+
+---
+
+### 🎯 Como disparar uma notificação:
+
+Notificações são disparadas automaticamente no backend, por exemplo:
+
+| Ação                     | Tipo de Notificação | Destino WS                       |
+| ------------------------ | ------------------- | -------------------------------- |
+| Criação de um novo curso | Platform            | Broadcast para todos os usuários |
+| Evento individual        | User                | Apenas o usuário específico      |
+
+Exemplo: No backend, quando um curso é criado:
+
+```rust
+notification_service::create_notification_and_emit(
+    "Novo Curso Criado",
+    &format!("Curso '{}' foi criado com sucesso", course.name),
+    ObjCodeType::Platform,
+    None,
+    db,
+    &ws_server,
+)
+.await?;
+```
+
+---
+
+### ✅ Fluxo Interno do WebSocket
+
+1. **Usuário se conecta via `/api/v1/ws/?token=JWT`**
+2. **Backend adiciona o usuário à lista de sessões ativas (`HashMap<Uuid, Recipient>`)**
+3. **Quando uma notificação é criada:**
+
+   * Se for **Platform**, faz broadcast a todos.
+   * Se for **User**, envia apenas ao `user_id` específico.
+
+---
+
+### ✅ Estrutura interna:
+
+```
+src/
+├── websocket/
+│   ├── server.rs      # WsServer (gerencia sessões e broadcast)
+│   ├── session.rs     # WsSession (cada conexão ativa)
+│   └── routes.rs      # Endpoint /ws/
+```
+
+---
+
+### 🔥 Exemplo de payload recebido via WebSocket:
+
+```json
+{
+  "id": "e2b846b1-8d4f-432f-a918-9840e50218ec",
+  "title": "Novo Curso Criado",
+  "message": "Curso 'Rust para Iniciantes' foi criado com sucesso",
+  "obj_code": "Platform",
+  "obj_id": null,
+  "created_at": "2025-06-17T18:35:22Z"
+}
+```
 
 
 ## 🔍 Exemplo de Uso de Logs

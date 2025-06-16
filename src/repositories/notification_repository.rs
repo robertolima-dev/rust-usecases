@@ -19,6 +19,7 @@ pub async fn create_notification(
         obj_id,
         created_at: Utc::now().naive_utc(),
     };
+    println!("notification: {:?}", notification.clone());
     sqlx::query!(
         r#"
         INSERT INTO notifications (id, title, message, obj_code, obj_id, created_at)
