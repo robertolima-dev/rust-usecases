@@ -1,3 +1,4 @@
+use crate::config::app_state::AppState;
 use crate::config::get_settings;
 use crate::errors::app_error::AppError;
 use crate::log_fail;
@@ -13,9 +14,8 @@ use crate::services::email_service::EmailService;
 use crate::services::token_service;
 use crate::utils::formatter;
 use crate::utils::jwt::generate_jwt;
+use actix_web::web;
 use chrono::Utc;
-use mongodb::Database;
-use sqlx::PgPool;
 use tracing::{error, info, warn};
 use uuid::Uuid;
 use validator::Validate;
@@ -23,9 +23,12 @@ use validator::Validate;
 /// Cria user + profile com base em UserRequest
 pub async fn create_user_with_request(
     req: UserRequest,
-    db: &PgPool,
-    mongo_db: &Database,
+    // db: &PgPool,
+    // mongo_db: &Database,
+    state: &web::Data<AppState>,
 ) -> Result<UserResponse, AppError> {
+    let db = &state.db;
+    let mongo_db = &state.mongo;
     info!(
         email = %req.email,
         "Criando novo usuário"
@@ -57,7 +60,7 @@ pub async fn create_user_with_request(
 
     let profile = Profile::from_request(user_id, req.profile);
 
-    match create_user_and_profile(&user, &profile, db).await {
+    match create_user_and_profile(&user, &profile, &state).await {
         Ok(p) => p,
         Err(err) => {
             log_fail!(
@@ -93,8 +96,11 @@ pub async fn create_user_with_request(
 pub async fn create_user_and_profile(
     user: &User,
     profile: &Profile,
-    db: &PgPool,
+    // db: &PgPool,
+    state: &web::Data<AppState>,
 ) -> Result<(), AppError> {
+    let db = &state.db;
+
     let mut tx = db.begin().await.map_err(|err| {
         error!(
             error = %err,
@@ -119,9 +125,12 @@ pub async fn create_user_and_profile(
 
 pub async fn login_user(
     payload: LoginRequest,
-    db: &PgPool,
-    mongo_db: &Database,
+    // db: &PgPool,
+    // mongo_db: &Database,
+    state: &web::Data<AppState>,
 ) -> Result<UserResponse, AppError> {
+    let db = &state.db;
+    let mongo_db = &state.mongo;
     info!(
         email = %payload.email,
         "Tentativa de login"
@@ -219,7 +228,9 @@ pub async fn login_user(
 }
 
 #[allow(unused_variables)]
-pub async fn confirm_email(code: &str, db: &PgPool, mongo_db: &Database) -> Result<(), AppError> {
+pub async fn confirm_email(code: &str, state: &web::Data<AppState>) -> Result<(), AppError> {
+    let db = &state.db;
+    let mongo_db = &state.mongo;
     // Valida o token de confirmação de email
     let token = token_service::get_and_validate_token(code, "confirm_email", db).await?;
 
@@ -235,9 +246,12 @@ pub async fn confirm_email(code: &str, db: &PgPool, mongo_db: &Database) -> Resu
 #[allow(unused_variables)]
 pub async fn forgot_password(
     email: &str,
-    db: &PgPool,
-    mongo_db: &Database,
+    // db: &PgPool,
+    // mongo_db: &Database,
+    state: &web::Data<AppState>,
 ) -> Result<(), AppError> {
+    let db = &state.db;
+    let mongo_db = &state.mongo;
     // Busca o usuário pelo email
     let user = user_repository::find_user_by_email(email, db)
         .await?
@@ -262,9 +276,12 @@ pub async fn forgot_password(
 pub async fn change_password(
     code: &str,
     new_password: &str,
-    db: &PgPool,
-    mongo_db: &Database,
+    // db: &PgPool,
+    // mongo_db: &Database,
+    state: &web::Data<AppState>,
 ) -> Result<(), AppError> {
+    let db = &state.db;
+    let mongo_db = &state.mongo;
     // Valida o token de mudança de senha
     let token = token_service::get_and_validate_token(code, "change_password", db).await?;
 

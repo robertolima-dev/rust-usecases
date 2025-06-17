@@ -1,22 +1,22 @@
+use crate::config::app_state::AppState;
 use crate::errors::app_error::AppError;
 use crate::log_fail;
 use crate::logs::model::LogLevel;
 use crate::models::user::{UpdateUserRequest, User, UserResponse, UserWithProfile};
 use crate::repositories::{profile_repository, user_repository};
 use crate::utils::pagination::PaginatedResponse;
-use mongodb::Database;
-use sqlx::{PgPool, Result};
+use actix_web::web;
+use sqlx::Result;
 use std::env;
 use uuid::Uuid;
 
 pub async fn get_me_by_user_id(
     user_id: Uuid,
-    db: &PgPool,
-    mongo_db: &Database,
     token: String,
+    state: &web::Data<AppState>,
 ) -> Result<UserResponse, AppError> {
-    // let user = user_repository::find_user_by_id(user_id, db).await?;
-    // let profile = profile_repository::find_profile_by_user_id(user.id, db).await?;
+    let db = &state.db;
+    let mongo_db = &state.mongo;
 
     let user = match user_repository::find_user_by_id(user_id, db).await {
         Ok(p) => p,
@@ -60,11 +60,13 @@ pub async fn get_me_by_user_id(
 
 pub async fn list_users_paginated(
     user_id: Uuid,
-    db: &PgPool,
-    mongo_db: &Database,
     limit: i64,
     offset: i64,
+    state: &web::Data<AppState>,
 ) -> Result<PaginatedResponse<User>, AppError> {
+    let db = &state.db;
+    let mongo_db = &state.mongo;
+
     let count = user_repository::count_all_users(db)
         .await
         .map_err(|_| AppError::BadRequest(Some("Erro ao contar usuários".into())))?;
@@ -93,11 +95,13 @@ pub async fn list_users_paginated(
 }
 
 pub async fn update_logged_user(
-    db: &PgPool,
-    mongo_db: &Database,
     user_id: Uuid,
     req: UpdateUserRequest,
+    state: &web::Data<AppState>,
 ) -> Result<UserResponse, AppError> {
+    let db = &state.db;
+    let mongo_db = &state.mongo;
+
     user_repository::find_user_by_id(user_id, db).await?;
 
     let user = match user_repository::update_user_fields(db, user_id, req.first_name, req.last_name)
@@ -145,10 +149,12 @@ pub async fn update_logged_user(
 }
 
 pub async fn delete_logged_user(
-    db: &PgPool,
-    mongo_db: &Database,
     user_id: Uuid,
+    state: &web::Data<AppState>,
 ) -> Result<(), AppError> {
+    let db = &state.db;
+    let mongo_db = &state.mongo;
+
     user_repository::find_user_by_id(user_id, db).await?;
     let affected = match user_repository::soft_delete_user(db, user_id).await {
         Ok(p) => p,
