@@ -4,10 +4,10 @@ use crate::log_fail;
 use crate::logs::model::LogLevel;
 use crate::models::user::{UpdateUserRequest, User, UserResponse, UserWithProfile};
 use crate::repositories::{profile_repository, user_repository};
+use crate::utils::jwt::calculate_remaining_expiration;
 use crate::utils::pagination::PaginatedResponse;
 use actix_web::web;
 use sqlx::Result;
-use std::env;
 use uuid::Uuid;
 
 pub async fn get_me_by_user_id(
@@ -49,12 +49,13 @@ pub async fn get_me_by_user_id(
 
     // Montar resposta
     let user_with_profile = UserWithProfile::from_user_and_profile(user, profile);
-    let expires_in = env::var("JWT_EXPIRES_IN").unwrap_or_else(|_| "86400".to_string());
+    let remaining_seconds = calculate_remaining_expiration(&token)
+        .expect("Falha ao calcular tempo de expiração restante");
 
     Ok(UserResponse {
         user: user_with_profile,
         token,
-        expires_in,
+        expires_in: remaining_seconds.to_string(),
     })
 }
 
@@ -97,6 +98,7 @@ pub async fn list_users_paginated(
 pub async fn update_logged_user(
     user_id: Uuid,
     req: UpdateUserRequest,
+    token: String,
     state: &web::Data<AppState>,
 ) -> Result<UserResponse, AppError> {
     let db = &state.db;
@@ -138,13 +140,13 @@ pub async fn update_logged_user(
         }
     };
 
-    let token = "".to_string();
-    let expires_in = std::env::var("JWT_EXPIRES_IN").unwrap_or("86400".to_string());
+    let remaining_seconds = calculate_remaining_expiration(&token)
+        .expect("Falha ao calcular tempo de expiração restante");
 
     Ok(UserResponse::from(
         UserWithProfile::from_user_and_profile(user, profile),
         token,
-        expires_in,
+        remaining_seconds.to_string(),
     ))
 }
 
