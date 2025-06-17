@@ -1,16 +1,19 @@
 // src/services/profile_service.rs
+use crate::config::app_state::AppState;
 use crate::errors::app_error::AppError;
 use crate::models::profile::UpdateProfileRequest;
 use crate::models::user::{UserResponse, UserWithProfile};
 use crate::repositories::{profile_repository, user_repository};
-use sqlx::PgPool;
+use actix_web::web;
 use uuid::Uuid;
 
 pub async fn update_profile_by_user_id(
     user_id: Uuid,
     data: UpdateProfileRequest,
-    db: &PgPool,
+    state: &web::Data<AppState>,
 ) -> Result<UserResponse, AppError> {
+    let db = &state.db;
+
     let user = user_repository::find_user_by_id(user_id, db).await?;
 
     profile_repository::update_profile_fields_by_user_id(user.id, &data, db)

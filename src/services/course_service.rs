@@ -1,3 +1,4 @@
+use crate::config::app_state::AppState;
 use crate::config::get_settings;
 use crate::errors::app_error::AppError;
 use crate::models::course::{
@@ -6,23 +7,20 @@ use crate::models::course::{
 use crate::models::notification::ObjCodeType;
 use crate::repositories::course_repository;
 use crate::services::notification_service;
-use crate::websocket::server::WsServer;
-use actix::Addr;
 use actix_web::web;
 use chrono::Utc;
-use elasticsearch::{Elasticsearch, IndexParts, SearchParts};
+use elasticsearch::{IndexParts, SearchParts};
 use serde_json::{Value, json};
-use sqlx::PgPool;
 use uuid::Uuid;
 
 pub async fn create_course_service(
     payload: CreateCourseRequest,
     author_id: Uuid,
-    db: &PgPool,
-    es_client: &Elasticsearch,
-    ws_server: web::Data<Addr<WsServer>>,
+    state: &web::Data<AppState>,
 ) -> Result<Course, anyhow::Error> {
-    println!("payload: {:?}", payload);
+    let db = &state.db;
+    let es_client = &state.es;
+
     let now = Utc::now().naive_utc();
     let course = Course {
         id: Uuid::new_v4(),
@@ -72,8 +70,7 @@ pub async fn create_course_service(
         &format!("Curso '{}' foi criado com sucesso", course.name),
         ObjCodeType::Platform,
         None,
-        db,
-        ws_server,
+        &state,
     )
     .await?;
 
@@ -84,9 +81,11 @@ pub async fn update_course_and_sync(
     id: Uuid,
     payload: UpdateCourseRequest,
     user_id: Uuid,
-    db: &PgPool,
-    es_client: &Elasticsearch,
+    state: &web::Data<AppState>,
 ) -> Result<Course, AppError> {
+    let db = &state.db;
+    let es_client = &state.es;
+
     let existing = course_repository::find_course_by_id(id, db)
         .await
         .map_err(|_| AppError::NotFound(Some("Curso não encontrado".into())))?;
@@ -129,8 +128,9 @@ pub async fn update_course_and_sync(
 
 pub async fn search_courses(
     query: CourseQuery,
-    es: &Elasticsearch,
+    state: &web::Data<AppState>,
 ) -> Result<PaginatedCourseResponse, AppError> {
+    let es_client = &state.es;
     let settings = get_settings();
     let index = format!("{}_courses", settings.elasticsearch.index_prefix);
 
@@ -202,7 +202,7 @@ pub async fn search_courses(
         "sort": [{ "dt_start": { "order": "desc" } }]
     });
 
-    let response = es
+    let response = es_client
         .search(SearchParts::Index(&[&index]))
         .body(query_body)
         .send()
@@ -229,11 +229,10 @@ pub async fn search_courses(
     })
 }
 
-pub async fn delete_course(
-    db: &sqlx::PgPool,
-    es: &Elasticsearch,
-    course_id: Uuid,
-) -> Result<(), AppError> {
+pub async fn delete_course(course_id: Uuid, state: &web::Data<AppState>) -> Result<(), AppError> {
+    let db = &state.db;
+    let es_client = &state.es;
+
     // 1. Soft delete no Postgres
     course_repository::soft_delete_course_by_id(db, course_id).await?;
 
@@ -241,7 +240,7 @@ pub async fn delete_course(
     let settings = get_settings();
     let index = format!("{}_courses", settings.elasticsearch.index_prefix);
 
-    let response = es
+    let response = es_client
         .delete(elasticsearch::DeleteParts::IndexId(
             &index,
             &course_id.to_string(),

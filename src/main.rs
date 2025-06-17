@@ -1,4 +1,4 @@
-use actix::{Actor, Addr};
+use actix::Actor;
 use actix_web::{App, HttpServer, web};
 use anyhow::Result;
 use dotenvy::dotenv;
@@ -21,6 +21,7 @@ mod websocket;
 #[macro_use]
 pub mod macros;
 
+use crate::config::app_state::AppState;
 use crate::config::get_settings;
 use crate::db::mongo::init_mongodb;
 use crate::db::postgres::get_db_pool;
@@ -28,10 +29,6 @@ use crate::websocket::server::WsServer;
 use elasticsearch::Elasticsearch;
 use elasticsearch::http::transport::Transport;
 use routes::configure::api_v1_scope;
-
-pub struct AppState {
-    pub ws_server: Addr<WsServer>,
-}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -58,13 +55,17 @@ async fn main() -> Result<()> {
                 "🚀 Iniciando servidor"
             );
 
+            let app_state = web::Data::new(AppState {
+                db: pool,
+                mongo: mongo_db,
+                es: elastic_client,
+                ws_server: ws_server,
+            });
+
             HttpServer::new(move || {
                 App::new()
                     .wrap(TracingLogger::default())
-                    .app_data(web::Data::new(pool.clone()))
-                    .app_data(web::Data::new(mongo_db.clone()))
-                    .app_data(web::Data::new(elastic_client.clone()))
-                    .app_data(web::Data::new(ws_server.clone()))
+                    .app_data(app_state.clone())
                     .service(api_v1_scope())
             })
             .bind((settings.server.host.clone(), settings.server.port))?
