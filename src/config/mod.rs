@@ -1,3 +1,4 @@
+pub mod app_state;
 mod settings;
 
 pub use settings::Settings;

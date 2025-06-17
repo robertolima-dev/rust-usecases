@@ -272,6 +272,46 @@ src/
 }
 ```
 
+## ✅ Exemplo de Rota com AppState + Error Handling:
+
+```rust
+#[post("/courses/")]
+pub async fn create_course(
+    req: HttpRequest,
+    payload: web::Json<CreateCourseRequest>,
+    state: web::Data<AppState>,
+) -> Result<HttpResponse, AppError> {
+    let user_id = req.user_id()?;
+
+    let course = course_service::create_course_service(
+        payload.into_inner(),
+        user_id,
+        &state,
+    ).await?;
+
+    Ok(HttpResponse::Created().json(course))
+}
+```
+
+---
+
+## ✅ Exemplo de Setup no `main.rs`
+
+```rust
+let app_state = web::Data::new(AppState {
+    pool,
+    mongo_db,
+    elastic_client,
+    ws_server,
+});
+
+HttpServer::new(move || {
+    App::new()
+        .app_data(app_state.clone())
+        .configure(routes::init_routes)
+})
+```
+
 
 ## 🔍 Exemplo de Uso de Logs
 

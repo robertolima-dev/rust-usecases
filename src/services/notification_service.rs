@@ -1,17 +1,17 @@
+use crate::config::app_state::AppState;
 use crate::models::notification::Notification;
 use crate::models::notification::ObjCodeType;
 use crate::repositories::notification_repository;
-use crate::websocket::server::WsServer;
-use actix::Addr;
 use actix_web::web;
 use anyhow::Result;
-use sqlx::PgPool;
 use uuid::Uuid;
 
 pub async fn get_user_notifications(
     user_id: Uuid,
-    db: &PgPool,
+    state: &web::Data<AppState>,
 ) -> Result<Vec<Notification>, sqlx::Error> {
+    let db = &state.db;
+
     notification_repository::list_notifications_for_user_or_platform(user_id, db).await
 }
 
@@ -21,9 +21,11 @@ pub async fn create_notification_and_emit(
     message: &str,
     obj_code: ObjCodeType,
     obj_id: Option<Uuid>,
-    db: &PgPool,
-    ws_server: web::Data<Addr<WsServer>>,
+    state: &web::Data<AppState>,
 ) -> Result<Notification> {
+    let db = &state.db;
+    let ws_server = &state.ws_server;
+
     // 1. Criar a notificação no banco
     let notification =
         notification_repository::create_notification(title, message, obj_code.clone(), obj_id, db)
