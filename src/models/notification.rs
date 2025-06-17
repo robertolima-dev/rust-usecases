@@ -12,6 +12,12 @@ pub enum ObjCodeType {
     User,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct NotificationQuery {
+    pub limit: Option<usize>,
+    pub offset: Option<usize>,
+}
+
 #[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
 pub struct Notification {
     pub id: Uuid,

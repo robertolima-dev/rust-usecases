@@ -1,7 +1,7 @@
 use crate::errors::app_error::AppError;
 use crate::models::notification::{Notification, ObjCodeType};
 use chrono::Utc;
-use sqlx::{Error, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
 pub async fn create_notification(
@@ -43,18 +43,22 @@ pub async fn create_notification(
 
 pub async fn list_notifications_for_user_or_platform(
     user_id: Uuid,
+    offset: i64,
+    limit: i64,
     db: &PgPool,
-) -> Result<Vec<Notification>, Error> {
-    let notifications = sqlx::query_as_unchecked!(
-        Notification,
+) -> Result<Vec<Notification>, sqlx::Error> {
+    let notifications = sqlx::query_as::<_, Notification>(
         r#"
-        SELECT id, title, message, obj_code::TEXT, obj_id, created_at
+        SELECT id, title, message, obj_code, obj_id, created_at
         FROM notifications
         WHERE obj_code = 'platform' OR (obj_code = 'user' AND obj_id = $1)
         ORDER BY created_at DESC
+        LIMIT $2 OFFSET $3
         "#,
-        user_id
     )
+    .bind(user_id)
+    .bind(limit)
+    .bind(offset)
     .fetch_all(db)
     .await?;
 
