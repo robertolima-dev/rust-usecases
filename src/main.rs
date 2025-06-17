@@ -29,9 +29,11 @@ use crate::websocket::server::WsServer;
 use elasticsearch::Elasticsearch;
 use elasticsearch::http::transport::Transport;
 use routes::configure::api_v1_scope;
+// use tracing_subscriber;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // tracing_subscriber::fmt::init();
     dotenv().ok();
     config::init_settings().expect("Falha ao inicializar configurações");
     utils::setup_development_logging().expect("Falha ao configurar logs");

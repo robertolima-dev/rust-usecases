@@ -1,5 +1,7 @@
 use crate::config::app_state::AppState;
+use crate::errors::app_error::AppError;
 use crate::models::notification::Notification;
+use crate::models::notification::NotificationQuery;
 use crate::models::notification::ObjCodeType;
 use crate::repositories::notification_repository;
 use actix_web::web;
@@ -8,11 +10,24 @@ use uuid::Uuid;
 
 pub async fn get_user_notifications(
     user_id: Uuid,
-    state: &web::Data<AppState>,
-) -> Result<Vec<Notification>, sqlx::Error> {
+    query: NotificationQuery,
+    state: &AppState,
+) -> Result<Vec<Notification>, AppError> {
     let db = &state.db;
+    let offset = query.offset.unwrap_or(0);
+    let limit = query.limit.unwrap_or(10);
 
-    notification_repository::list_notifications_for_user_or_platform(user_id, db).await
+    notification_repository::list_notifications_for_user_or_platform(
+        user_id,
+        offset as i64,
+        limit as i64,
+        db,
+    )
+    .await
+    .map_err(|err| {
+        eprintln!("Erro ao buscar notificações no banco: {:?}", err);
+        AppError::DatabaseError(Some(format!("Erro ao listar notificações: {}", err)))
+    })
 }
 
 #[allow(dead_code)]
