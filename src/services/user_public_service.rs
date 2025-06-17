@@ -253,7 +253,7 @@ pub async fn forgot_password(email: &str, state: &web::Data<AppState>) -> Result
     let code = token_service::create_user_token(user.id, token_type, db).await?;
     println!("code change password: {}", code);
 
-    // let email_service = EmailService::new("no-reply@seusite.com".into()).await?;
+    // let email_service = EmailService::new().await?;
     // let email_link = format!("https://seusite.com/reset?token={}", code);
     // email_service
     //     .send_reset_password(email, &user.first_name, &email_link)

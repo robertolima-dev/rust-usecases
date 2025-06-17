@@ -41,13 +41,28 @@ pub async fn create_notification(
     Ok(notification)
 }
 
+pub async fn count_all_notifications(user_id: Uuid, db: &PgPool) -> Result<i64, sqlx::Error> {
+    let count = sqlx::query_scalar!(
+        r#"
+        SELECT COUNT(*) as "count!"
+        FROM notifications
+        WHERE obj_code = 'platform' OR (obj_code = 'user' AND obj_id = $1)
+        "#,
+        user_id
+    )
+    .fetch_one(db)
+    .await?;
+
+    Ok(count)
+}
+
 pub async fn list_notifications_for_user_or_platform(
     user_id: Uuid,
     offset: i64,
     limit: i64,
     db: &PgPool,
 ) -> Result<Vec<Notification>, sqlx::Error> {
-    let notifications = sqlx::query_as::<_, Notification>(
+    sqlx::query_as::<_, Notification>(
         r#"
         SELECT id, title, message, obj_code, obj_id, created_at
         FROM notifications
@@ -60,7 +75,7 @@ pub async fn list_notifications_for_user_or_platform(
     .bind(limit)
     .bind(offset)
     .fetch_all(db)
-    .await?;
+    .await
 
-    Ok(notifications)
+    // Ok(notifications)
 }
