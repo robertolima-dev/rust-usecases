@@ -48,9 +48,17 @@ pub async fn update_user(
     payload: web::Json<UpdateUserRequest>,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, AppError> {
+    let token = req
+        .headers()
+        .get("Authorization")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| s.strip_prefix("Token "))
+        .map(|s| s.to_string())
+        .ok_or(AppError::Unauthorized(None))?;
     let user_id = req.user_id()?;
     let response =
-        user_private_service::update_logged_user(user_id, payload.into_inner(), &state).await?;
+        user_private_service::update_logged_user(user_id, payload.into_inner(), token, &state)
+            .await?;
     Ok(HttpResponse::Ok().json(response))
 }
 
