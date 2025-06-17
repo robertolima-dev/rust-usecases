@@ -23,8 +23,6 @@ use validator::Validate;
 /// Cria user + profile com base em UserRequest
 pub async fn create_user_with_request(
     req: UserRequest,
-    // db: &PgPool,
-    // mongo_db: &Database,
     state: &web::Data<AppState>,
 ) -> Result<UserResponse, AppError> {
     let db = &state.db;
@@ -96,7 +94,6 @@ pub async fn create_user_with_request(
 pub async fn create_user_and_profile(
     user: &User,
     profile: &Profile,
-    // db: &PgPool,
     state: &web::Data<AppState>,
 ) -> Result<(), AppError> {
     let db = &state.db;
@@ -125,12 +122,11 @@ pub async fn create_user_and_profile(
 
 pub async fn login_user(
     payload: LoginRequest,
-    // db: &PgPool,
-    // mongo_db: &Database,
     state: &web::Data<AppState>,
 ) -> Result<UserResponse, AppError> {
     let db = &state.db;
     let mongo_db = &state.mongo;
+
     info!(
         email = %payload.email,
         "Tentativa de login"
@@ -244,12 +240,7 @@ pub async fn confirm_email(code: &str, state: &web::Data<AppState>) -> Result<()
 }
 
 #[allow(unused_variables)]
-pub async fn forgot_password(
-    email: &str,
-    // db: &PgPool,
-    // mongo_db: &Database,
-    state: &web::Data<AppState>,
-) -> Result<(), AppError> {
+pub async fn forgot_password(email: &str, state: &web::Data<AppState>) -> Result<(), AppError> {
     let db = &state.db;
     let mongo_db = &state.mongo;
     // Busca o usuário pelo email
