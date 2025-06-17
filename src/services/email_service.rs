@@ -1,6 +1,8 @@
 use crate::errors::app_error::AppError;
 use aws_sdk_sesv2::Client;
-use aws_sdk_sesv2::config::BehaviorVersion;
+use aws_sdk_sesv2::config::Credentials;
+use aws_sdk_sesv2::config::{BehaviorVersion, Config};
+use std::env;
 use tera::{Context, Tera};
 
 #[allow(dead_code)]
@@ -12,11 +14,30 @@ pub struct EmailService {
 
 #[allow(dead_code)]
 impl EmailService {
-    pub async fn new(sender_email: String) -> Result<Self, AppError> {
-        let config = aws_config::load_defaults(BehaviorVersion::latest()).await;
-        let client = Client::new(&config);
+    pub async fn new() -> Result<Self, AppError> {
+        // Carregar credenciais AWS das variáveis de ambiente
+        let access_key = env::var("AWS_ACCESS_KEY_ID")
+            .map_err(|_| AppError::InternalError(Some("AWS_ACCESS_KEY_ID não definida".into())))?;
+        let secret_key = env::var("AWS_SECRET_ACCESS_KEY").map_err(|_| {
+            AppError::InternalError(Some("AWS_SECRET_ACCESS_KEY não definida".into()))
+        })?;
+        let region = env::var("AWS_REGION").unwrap_or_else(|_| "us-east-1".to_string());
 
-        let tera = Tera::new("templates/emails/**/*").map_err(|err| {
+        // Carregar email remetente das variáveis de ambiente
+        let sender_email = env::var("DEFAULT_FROM_EMAIL")
+            .map_err(|_| AppError::InternalError(Some("DEFAULT_FROM_EMAIL não definida".into())))?;
+
+        let credentials = Credentials::new(&access_key, &secret_key, None, None, "static");
+
+        let config = Config::builder()
+            .behavior_version(BehaviorVersion::latest())
+            .credentials_provider(credentials)
+            .region(aws_sdk_sesv2::config::Region::new(region))
+            .build();
+
+        let client = Client::from_conf(config);
+
+        let tera = Tera::new("src/templates/**/*.html").map_err(|err| {
             eprintln!("Erro ao carregar templates: {:?}", err);
             AppError::InternalError(Some("Erro no template engine".into()))
         })?;
@@ -38,10 +59,13 @@ impl EmailService {
         ctx.insert("name", user_name);
         ctx.insert("link", reset_link);
 
-        let body = self.tera.render("reset_password.html", &ctx).map_err(|e| {
-            eprintln!("Erro ao renderizar e-mail: {}", e);
-            AppError::InternalError(Some("Erro ao montar e-mail".into()))
-        })?;
+        let body = self
+            .tera
+            .render("emails/reset_password.html", &ctx)
+            .map_err(|e| {
+                eprintln!("Erro ao renderizar e-mail: {}", e);
+                AppError::InternalError(Some("Erro ao montar e-mail".into()))
+            })?;
 
         self.send_html_email(to_email, "🔐 Redefina sua senha", &body)
             .await

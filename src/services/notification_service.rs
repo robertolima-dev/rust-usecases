@@ -1,9 +1,12 @@
 use crate::config::app_state::AppState;
 use crate::errors::app_error::AppError;
+use crate::log_fail;
+use crate::logs::model::LogLevel;
 use crate::models::notification::Notification;
 use crate::models::notification::NotificationQuery;
 use crate::models::notification::ObjCodeType;
 use crate::repositories::notification_repository;
+use crate::utils::pagination::PaginatedResponse;
 use actix_web::web;
 use anyhow::Result;
 use uuid::Uuid;
@@ -12,21 +15,46 @@ pub async fn get_user_notifications(
     user_id: Uuid,
     query: NotificationQuery,
     state: &AppState,
-) -> Result<Vec<Notification>, AppError> {
+) -> Result<PaginatedResponse<Notification>, AppError> {
     let db = &state.db;
+    let mongo_db = &state.mongo;
     let offset = query.offset.unwrap_or(0);
     let limit = query.limit.unwrap_or(10);
 
-    notification_repository::list_notifications_for_user_or_platform(
+    let count = notification_repository::count_all_notifications(user_id, db)
+        .await
+        .map_err(|_| AppError::BadRequest(Some("Erro ao contar notificações".into())))?;
+
+    let notifications = match notification_repository::list_notifications_for_user_or_platform(
         user_id,
         offset as i64,
         limit as i64,
         db,
     )
     .await
-    .map_err(|err| {
-        eprintln!("Erro ao buscar notificações no banco: {:?}", err);
-        AppError::DatabaseError(Some(format!("Erro ao listar notificações: {}", err)))
+    {
+        Ok(p) => p,
+        Err(err) => {
+            log_fail!(
+                err,
+                LogLevel::Error,
+                "Erro ao listar users",
+                "user_service",
+                Some(user_id),
+                mongo_db
+            );
+            return Err(AppError::DatabaseError(Some(format!(
+                "Erro ao listar notificações: {}",
+                err
+            ))));
+        }
+    };
+
+    Ok(PaginatedResponse {
+        count,
+        results: notifications,
+        limit: limit as i64,
+        offset: offset as i64,
     })
 }
 
