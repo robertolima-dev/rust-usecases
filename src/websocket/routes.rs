@@ -1,8 +1,9 @@
 use super::session::WsSession;
+use crate::config::app_state::AppState;
 use crate::models::auth::Claims;
 use crate::utils::jwt::decode_token;
-use crate::websocket::server::WsServer;
-use actix::Addr;
+// use crate::websocket::server::WsServer;
+// use actix::Addr;
 use actix_web::{Error, HttpRequest, HttpResponse, get, web};
 use actix_web_actors::ws;
 use uuid::Uuid;
@@ -11,8 +12,11 @@ use uuid::Uuid;
 pub async fn websocket_entry(
     req: HttpRequest,
     stream: web::Payload,
-    ws_server: web::Data<Addr<WsServer>>,
+    // ws_server: web::Data<Addr<WsServer>>,
+    state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
+    let ws_server = &state.ws_server;
+
     // Extrair o token da URL: ?token=xxx
     let query_string = req.query_string();
     let token_opt =
@@ -44,7 +48,8 @@ pub async fn websocket_entry(
     ws::start(
         WsSession {
             user_id,
-            ws_server: ws_server.get_ref().clone(),
+            ws_server: ws_server.clone(),
+            // ws_server: ws_server.get_ref().clone(),
         },
         &req,
         stream,

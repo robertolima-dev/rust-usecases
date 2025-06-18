@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  elasticsearch_rust:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    container_name: elasticsearch_rust
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+  kibana_rust:
+    image: docker.elastic.co/kibana/kibana:8.11.1
+    container_name: kibana_rust
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch_rust
+
+  redis_rust:
+    image: redis:latest
+    container_name: redis_rust
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  redis-commander_rust:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander_rust
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:host.docker.internal:6379
+    restart: unless-stopped
+
+  zookeeper_rust:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka_rust:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper_rust
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    restart: on-failure:3
+  
+  mongodb_rust:
+    image: mongo:latest
+    container_name: mongodb_rust
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+    restart: unless-stopped
+
+volumes:
+  esdata:
+  mongodata:
