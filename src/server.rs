@@ -22,15 +22,16 @@ pub async fn start_server() -> Result<(), Box<dyn std::error::Error + Send + Syn
 
     let local = LocalSet::new();
 
+    info!(
+        host = %settings.server.host,
+        port = %settings.server.port,
+        environment = ?settings.environment,
+        "🚀 Servidor Actix iniciado"
+    );
+
     local
         .run_until(async move {
             let ws_server = WsServer::new().start();
-            info!(
-                host = %settings.server.host,
-                port = %settings.server.port,
-                environment = ?settings.environment,
-                "🚀 Servidor Actix iniciado"
-            );
 
             let app_state = web::Data::new(AppState {
                 db: pool,

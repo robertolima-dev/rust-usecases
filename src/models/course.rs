@@ -18,7 +18,7 @@ pub struct Course {
     pub dt_deleted: Option<NaiveDateTime>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct CreateCourseRequest {
     pub name: String,
     pub description: Option<String>,
