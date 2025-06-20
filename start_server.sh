@@ -20,6 +20,10 @@ docker-compose up -d zookeeper_rust kafka_rust redis_rust elasticsearch_rust kib
 echo "🛠️  Rodando migrations..."
 sqlx migrate run
 
+# Rodam todos os testes
+# echo "Rodando testes unitários e de integração..."
+# cargo test
+
 # Inicia o cargo watch com hot reload
 echo "🚀 Iniciando servidor com hot reload (cargo watch)..."
 cargo watch -q -c -w src/ -x "run -- api"
