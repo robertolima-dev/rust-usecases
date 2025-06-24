@@ -5,7 +5,10 @@ use jsonwebtoken::{
     Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation, decode, encode,
 };
 
-pub fn generate_jwt(user_id: &str) -> Result<String, jsonwebtoken::errors::Error> {
+pub fn generate_jwt(
+    user_id: &str,
+    access_level: &str,
+) -> Result<String, jsonwebtoken::errors::Error> {
     let settings = get_settings();
     let expires_in = settings.jwt.expires_in;
 
@@ -17,6 +20,7 @@ pub fn generate_jwt(user_id: &str) -> Result<String, jsonwebtoken::errors::Error
     let claims = Claims {
         sub: user_id.to_string(),
         exp,
+        access_level: access_level.to_string(),
     };
 
     encode(

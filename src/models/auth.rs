@@ -7,6 +7,7 @@ use validator::Validate;
 pub struct Claims {
     pub sub: String, // ID do usuário ou email
     pub exp: usize,  // timestamp de expiração
+    pub access_level: String,
 }
 
 #[derive(Debug, Deserialize, Validate)]
