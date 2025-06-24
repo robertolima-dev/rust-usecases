@@ -19,6 +19,8 @@ Este projeto é uma API RESTful robusta desenvolvida em [Rust 🦀](https://www.
 * ✅ Hot reload com `cargo watch`
 * ✅ Sistema de tokens para ações temporárias (UserToken)
 * ✅ Módulo de cursos com busca full-text no Elasticsearch
+* ✅ CRUD completo de categorias
+* ✅ Sistema de testes de integração com banco isolado
 
 
 ## 🚀 Tecnologias
@@ -175,6 +177,34 @@ src/
   * `ELASTICSEARCH_URL`
   * `ELASTICSEARCH_INDEX_PREFIX`
 
+### 🏷️ CRUD de Categorias
+
+* Gerenciamento completo de categorias
+* Soft delete implementado
+* Paginação de resultados
+* Endpoints:
+  * `POST /api/v1/categories/` - Criar categoria
+  * `GET /api/v1/categories/` - Listar categorias (com paginação)
+  * `PUT /api/v1/categories/{id}/` - Atualizar categoria
+  * `DELETE /api/v1/categories/{id}/` - Deletar categoria (soft delete)
+
+### 🧪 Sistema de Testes
+
+* **Testes de integração** com banco de dados isolado
+* **Configuração automática** de banco de testes
+* **Execução de migrations** automática antes dos testes
+* **Limpeza de dados** entre execuções de testes
+* **Testes implementados**:
+  * `api_users.rs` - Testes de autenticação e usuários (4 testes)
+  * `api_courses.rs` - Testes de cursos (1 teste)
+* **Execução**: `cargo test -- --nocapture`
+
+#### 🔧 Configuração de Testes
+
+* Banco de testes isolado (`rust_usecases_test`)
+* Migrations executadas automaticamente
+* Tabelas limpas antes de cada teste
+* Configuração via `src/db/test_db.rs`
 
 ## 🔔 WebSocket - Notificações em Tempo Real
 
@@ -341,18 +371,21 @@ sqlx migrate run
 | ------ | ------------------- | ---------------------------------- | ---- |
 | POST   | `/api/v1/users/`    | Criação de usuário                 | ❌    |
 | POST   | `/api/v1/login/`    | Login e geração de token           | ❌    |
-| GET    | `/api/v1/confirm-email/{code}/` | Confirmar email do usuário | ❌    |
-| POST   | `/api/v1/forgot-password/` | Solicitar redefinição de senha | ❌    |
-| POST   | `/api/v1/change-password/` | Redefinir senha com token | ❌    |
 | GET    | `/api/v1/me/`       | Obter dados do usuário logado      | ✅    |
 | PUT    | `/api/v1/users/`    | Atualizar nome/sobrenome           | ✅    |
 | DELETE | `/api/v1/users/`    | Soft delete no próprio usuário     | ✅    |
 | POST   | `/api/v1/profiles/` | Atualizar perfil do usuário logado | ✅    |
 | GET    | `/api/v1/logs/`     | Consultar logs do MongoDB          | ✅    |
+| GET    | `/api/v1/confirm-email/{code}/` | Confirmar email do usuário | ❌    |
+| POST   | `/api/v1/forgot-password/` | Solicitar redefinição de senha | ❌    |
+| POST   | `/api/v1/change-password/` | Redefinir senha com token | ❌    |
 | POST   | `/api/v1/courses/`  | Criar novo curso                   | ✅    |
 | PUT    | `/api/v1/courses/{id}/` | Atualizar curso existente    | ✅    |
 | GET    | `/api/v1/courses/`  | Buscar cursos (full-text)          | ✅    |
-| DELETE    | `/api/v1/courses/{id}`  | Soft delete de cursos       | ✅    |
+| POST   | `/api/v1/categories/` | Criar nova categoria              | ✅    |
+| GET    | `/api/v1/categories/` | Listar categorias (paginação)    | ✅    |
+| PUT    | `/api/v1/categories/{id}/` | Atualizar categoria           | ✅    |
+| DELETE | `/api/v1/categories/{id}/` | Deletar categoria (soft)     | ✅    |
 
 
 ## ✉️ Templates de E-mail (Tera)

@@ -69,8 +69,8 @@ pub async fn create_user_in_tx(
 ) -> Result<(), AppError> {
     let result = sqlx::query!(
         r#"
-        INSERT INTO users (id, username, email, first_name, last_name, password, dt_created, dt_updated)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        INSERT INTO users (id, username, email, first_name, last_name, password, dt_created, dt_updated, dt_deleted)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         "#,
         user.id,
         user.username,
@@ -79,25 +79,18 @@ pub async fn create_user_in_tx(
         user.last_name,
         user.password,
         user.dt_created,
-        user.dt_updated
+        user.dt_updated,
+        user.dt_deleted
     )
     .execute(&mut **tx)
     .await;
 
-    match result {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            if let Some(db_err) = e.as_database_error() {
-                if let Some(code) = db_err.code() {
-                    if code == "23505" {
-                        // Código 23505 = unique_violation no PostgreSQL
-                        return Err(AppError::Conflict(Some("Email já cadastrado".into())));
-                    }
-                }
-            }
-            Err(AppError::BadRequest(Some("Erro ao criar usuário".into())))
-        }
+    if let Err(ref err) = result {
+        println!("[DEBUG][create_user_in_tx] Erro SQLX: {:?}", err);
     }
+
+    result.map_err(|_| AppError::BadRequest(Some("Erro ao criar o usuario".into())))?;
+    Ok(())
 }
 
 #[allow(dead_code)]
