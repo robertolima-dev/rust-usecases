@@ -19,27 +19,39 @@ use chrono::Utc;
 use tracing::{error, info, warn};
 use uuid::Uuid;
 use validator::Validate;
+use sqlx::PgPool;
+use std::env;
 
 /// Cria user + profile com base em UserRequest
 pub async fn create_user_with_request(
     req: UserRequest,
     state: &web::Data<AppState>,
 ) -> Result<UserResponse, AppError> {
-    let db = &state.db;
-    let mongo_db = &state.mongo;
-    info!(
-        email = %req.email,
-        "Criando novo usuário"
-    );
+    info!(email = %req.email, "Criando novo usuário");
 
     // Validar os dados de entrada
-    req.validate().map_err(|e| {
-        warn!(
-            error = %e,
-            "Dados inválidos na criação de usuário"
-        );
-        AppError::BadRequest(Some(format!("Dados inválidos: {}", e)))
-    })?;
+    if let Err(e) = req.validate() {
+        warn!(error = %e, "Dados inválidos na criação de usuário");
+        println!("[DEBUG][create_user_with_request] Erro de validação: {e}");
+        return Err(AppError::BadRequest(Some(format!("Dados inválidos: {}", e))));
+    }
+
+    // Bloco para capturar qualquer erro inesperado
+    match create_user_with_request_inner(req, state).await {
+        Ok(res) => Ok(res),
+        Err(e) => {
+            println!("[DEBUG][create_user_with_request] Erro inesperado: {e:?}");
+            Err(e)
+        }
+    }
+}
+
+async fn create_user_with_request_inner(
+    req: UserRequest,
+    state: &web::Data<AppState>,
+) -> Result<UserResponse, AppError> {
+    let db = &state.db;
+    let mongo_db = &state.mongo;
 
     let user_id = Uuid::new_v4();
     let now = Utc::now().naive_utc();
@@ -133,13 +145,11 @@ pub async fn login_user(
     );
 
     // Validar os dados de entrada
-    payload.validate().map_err(|e| {
-        warn!(
-            error = %e,
-            "Dados inválidos no login"
-        );
-        AppError::BadRequest(Some(format!("Dados inválidos: {}", e)))
-    })?;
+    if let Err(e) = payload.validate() {
+        warn!(error = %e, "Dados inválidos no login");
+        println!("[DEBUG][login_user] Erro de validação: {e}");
+        return Err(AppError::BadRequest(Some(format!("Dados inválidos: {}", e))));
+    }
 
     // 1. Buscar usuário por email
     let user = match user_repository::find_user_by_email(&payload.email, db).await {
@@ -154,7 +164,7 @@ pub async fn login_user(
                 None,
                 mongo_db
             );
-            return Err(AppError::NotFound(Some("Usuário não encontrado".into())));
+            return Err(AppError::Unauthorized(Some("Credenciais inválidas".into())));
         }
         Err(err) => {
             error!(error = %err, "Erro ao buscar usuário");
@@ -287,4 +297,26 @@ pub async fn change_password(
     token_repository::update_token(db, code).await?;
 
     Ok(())
+}
+
+pub async fn get_test_db_pool() -> PgPool {
+    let db_url = env::var("DATABASE_URL_TEST")
+        .expect("DATABASE_URL_TEST não definida");
+    PgPool::connect(&db_url)
+        .await
+        .expect("Falha ao conectar no banco de testes")
+}
+
+pub async fn clean_test_db(db: &PgPool) {
+    // Truncar tabelas na ordem correta (respeitando foreign keys)
+    sqlx::query!("TRUNCATE TABLE user_tokens CASCADE").execute(db).await.unwrap();
+    sqlx::query!("TRUNCATE TABLE profiles CASCADE").execute(db).await.unwrap();
+    sqlx::query!("TRUNCATE TABLE users CASCADE").execute(db).await.unwrap();
+    // Adicione outras tabelas conforme necessário
+}
+
+pub async fn setup_test_db() -> PgPool {
+    let pool = get_test_db_pool().await;
+    clean_test_db(&pool).await;
+    pool
 }
