@@ -27,3 +27,9 @@ pub struct CategoryQuery {
     pub limit: Option<i64>,
     pub offset: Option<i64>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CategorySimple {
+    pub id: Uuid,
+    pub name: String,
+}

@@ -7,6 +7,7 @@ use crate::models::course::{
 use crate::models::notification::ObjCodeType;
 use crate::repositories::course_repository;
 use crate::services::notification_service;
+use crate::utils::logging::log_elastic_response;
 use actix_web::web;
 use anyhow::Context;
 use chrono::Utc;
@@ -53,8 +54,24 @@ pub async fn create_course_service(
 
     tx.commit().await?;
 
-    let category_names = course_repository::get_category_names_by_course(course.id, db).await?;
-    println!("category_names: {:?}", category_names);
+    // 🔍 Busca os nomes das categorias para indexar no Elasticsearch
+    let categories = course_repository::get_category_names_by_course(course.id, db)
+        .await
+        .map_err(|e| {
+            anyhow::anyhow!(AppError::InternalError(Some(format!(
+                "Erro ao buscar categorias: {e}"
+            ))))
+        })?;
+
+    let categories_json: Vec<Value> = categories
+        .iter()
+        .map(|cat| {
+            json!({
+                "id": cat.id,
+                "name": cat.name,
+            })
+        })
+        .collect();
 
     // 🔍 Indexa no Elasticsearch
     let doc = json!({
@@ -67,12 +84,12 @@ pub async fn create_course_service(
         "author_id": course.author_id,
         "dt_start": course.dt_start,
         "dt_created": course.dt_created,
-        "categories": category_names,
+        "categories": categories_json,
     });
 
     let settings = get_settings();
     let index_name = format!("{}_courses", settings.elasticsearch.index_prefix);
-    es_client
+    let index_response = es_client
         .index(elasticsearch::IndexParts::IndexId(
             &index_name,
             course.id.to_string().as_str(),
@@ -80,6 +97,8 @@ pub async fn create_course_service(
         .body(doc)
         .send()
         .await?;
+
+    log_elastic_response(index_response).await;
 
     // Cria notificação no Postgres e dispara via WebSocket
     notification_service::create_notification_and_emit(
@@ -148,6 +167,16 @@ pub async fn update_course_and_sync(
         .await
         .map_err(|e| AppError::InternalError(Some(format!("Erro ao buscar categorias: {e}"))))?;
 
+    let categories_json: Vec<Value> = categories
+        .iter()
+        .map(|cat| {
+            json!({
+                "id": cat.id,
+                "name": cat.name,
+            })
+        })
+        .collect();
+
     // 🔄 Atualiza o Elasticsearch
     let settings = get_settings();
     let index = format!("{}_courses", settings.elasticsearch.index_prefix);
@@ -161,7 +190,7 @@ pub async fn update_course_and_sync(
         "month_duration": course.month_duration,
         "author_id": course.author_id,
         "dt_start": course.dt_start,
-        "categories": categories,  // ✅ Incluindo as categorias
+        "categories": categories_json,
     });
 
     es_client
@@ -244,7 +273,7 @@ pub async fn search_courses(
     if let Some(category_name) = query.category_name {
         must_clauses.push(json!({
             "term": {
-                "categories": category_name.to_string()
+                "categories.name": category_name.to_string()
             }
         }));
     }

@@ -165,7 +165,7 @@ collection:
             meta:
               id: req_ab4fc7e3bee1421a921bf7cece4d4f6c
               created: 1749322097549
-              modified: 1749759226232
+              modified: 1750177874849
               isPrivate: false
               sortKey: -1749432410109.75
             method: POST
@@ -173,7 +173,7 @@ collection:
               mimeType: application/json
               text: |-
                 {
-                  "email": "robertolima.izphera+user22@gmail.com",
+                  "email": "robertolima.izphera+user24@gmail.com",
                   "first_name": "Roberto",
                   "last_name": "Lima",
                   "password": "senha123"
@@ -196,7 +196,7 @@ collection:
             meta:
               id: req_cd39ebcd3541409f85aec28612b15b51
               created: 1749469187452
-              modified: 1749673908252
+              modified: 1750701826606
               isPrivate: false
               sortKey: -1749469187452
             method: POST
@@ -408,7 +408,7 @@ collection:
             meta:
               id: req_6d5eb39a7b054aacbcc38547b6c2d1aa
               created: 1749756639388
-              modified: 1749820080865
+              modified: 1750796398707
               isPrivate: false
               sortKey: -1749756655463
             method: POST
@@ -416,12 +416,16 @@ collection:
               mimeType: application/json
               text: |-
                 {
-                  "name": "Curso de Rust",
+                  "name": "Curso de Rust 5.0",
                   "description": "Aprenda Rust do zero",
                   "is_active": true,
                   "price": 299.99,
                   "month_duration": 6,
-                  "dt_start": "2025-06-10"
+                  "dt_start": "2025-06-10",
+                	"category_ids": [
+                		"909e78f7-d166-48d1-8699-fac5d397d0f5",
+                		"1ffb1b16-5177-432c-97dc-c3695c86cc33"
+                	]
                 }
             headers:
               - name: Content-Type
@@ -442,12 +446,12 @@ collection:
                 send: true
                 store: true
               rebuildPath: true
-          - url: "{{ _.URL }}/v1/courses/2823218f-d3aa-47de-83a7-6e2d03757186/"
+          - url: "{{ _.URL }}/v1/courses/0084b69a-0c32-40a1-be48-4f04921a3924/"
             name: update
             meta:
               id: req_13557d19a2f4458d9a1b94fd47026a95
               created: 1749820064916
-              modified: 1749828362867
+              modified: 1750795286824
               isPrivate: false
               sortKey: -1749742914803.125
             method: PUT
@@ -455,17 +459,19 @@ collection:
               mimeType: application/json
               text: |-
                 {
-                	"id": "2823218f-d3aa-47de-83a7-6e2d03757186",
-                	"name": "Curso de Rust 3.0",
+                	"id": "0084b69a-0c32-40a1-be48-4f04921a3924",
+                	"name": "Curso de Rust 1.0",
                 	"description": "Aprenda Rust do zero",
                 	"is_active": true,
-                	"price": 289.99,
+                	"price": 299.99,
                 	"month_duration": 6,
                 	"author_id": "4352fa3f-86b1-4dca-a96b-ac0c5a9e3b6d",
                 	"dt_start": "2025-06-10",
-                	"dt_created": "2025-06-12T20:22:22.985670",
-                	"dt_updated": "2025-06-12T20:22:22.985670",
-                	"dt_deleted": null
+                	"category_ids": [
+                		"057b7cec-fd26-4a94-8698-1ac43c29fb1c",
+                		"62d1ef10-bef8-4bc5-961f-72aa80fcf07e",
+                		"1ffb1b16-5177-432c-97dc-c3695c86cc33"
+                	]
                 }
             headers:
               - name: Content-Type
@@ -491,12 +497,33 @@ collection:
             meta:
               id: req_89132772ea604f9dafcb7ce92e4cd2fb
               created: 1749825201000
-              modified: 1749828364385
+              modified: 1750798072426
               isPrivate: false
               sortKey: -1749756655563
             method: GET
             body:
               mimeType: application/json
+            parameters:
+              - id: pair_1bd33872c2464a1e97b1c10688bc368f
+                name: limit
+                value: "100"
+                disabled: false
+              - id: pair_5000e89b2fbb4c12b32a051d26859d76
+                name: offset
+                value: "0"
+                disabled: false
+              - id: pair_63ed135484d04c98bd0e962dc712c9b4
+                name: is_active
+                value: "true"
+                disabled: true
+              - id: pair_04b3899a3194443abb499779625bf8a7
+                name: name
+                value: Ipsam
+                disabled: true
+              - id: pair_9af8e40f1a374028a3f3991c81edd105
+                name: category_name
+                value: intermediario
+                disabled: false
             headers:
               - name: Content-Type
                 value: application/json
@@ -521,12 +548,26 @@ collection:
             meta:
               id: req_b2f3aefc0bda4bbeaeac586d8db94202
               created: 1749828350952
-              modified: 1749828368463
+              modified: 1749839195734
               isPrivate: false
               sortKey: -1749701692773.5
             method: DELETE
             body:
               mimeType: application/json
+            parameters:
+              - id: pair_77dbdb9c7f744b42af9aede5081e3553
+                name: limit
+                value: "3"
+                disabled: false
+              - id: pair_73367b2b07a643b08f67d7a5a9add4ad
+                name: offset
+                value: "0"
+                disabled: false
+              - id: pair_0addaeff103d4adcb77d6bfca024dd00
+                name: name
+                disabled: false
+              - id: pair_5cdfdda539c04bb5ab6aae881a8dff21
+                disabled: false
             headers:
               - name: Content-Type
                 value: application/json
@@ -535,6 +576,187 @@ collection:
                 value: insomnia/11.0.0
                 id: pair_b6d4fcea1e5443f19e7a0fc7af6e0329
               - id: pair_2ee93e04cfe547eca92303d9cb6e15e6
+                name: Authorization
+                value: Token {{ _.TOKEN }}
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: NOTIFICATION
+        meta:
+          id: fld_56e19e75c55045cf9b5c5d6d8fee65de
+          created: 1750172206567
+          modified: 1750172206567
+          sortKey: -1749701673329
+        children:
+          - url: "{{ _.URL }}/v1/notifications/"
+            name: list
+            meta:
+              id: req_70df3ad3b0954fd482e3362a8e67c278
+              created: 1750172206570
+              modified: 1750776503398
+              isPrivate: false
+              sortKey: -1749756655563
+            method: GET
+            body:
+              mimeType: application/json
+            parameters:
+              - id: pair_1bd33872c2464a1e97b1c10688bc368f
+                name: limit
+                value: "10"
+                disabled: false
+              - id: pair_5000e89b2fbb4c12b32a051d26859d76
+                name: offset
+                value: "0"
+                disabled: false
+            headers:
+              - name: Content-Type
+                value: application/json
+                id: pair_067ed2ca085e48a98796e552d1f52856
+              - name: User-Agent
+                value: insomnia/11.0.0
+                id: pair_b6d4fcea1e5443f19e7a0fc7af6e0329
+              - id: pair_2ee93e04cfe547eca92303d9cb6e15e6
+                name: Authorization
+                value: Token {{ _.TOKEN }}
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: CATEGORY
+        meta:
+          id: fld_6c8f8a0bc4cc44e68b8a915cfeccd824
+          created: 1750701689287
+          modified: 1750701689287
+          sortKey: -1750701689287
+        children:
+          - url: "{{ _.URL }}/v1/categories/"
+            name: create
+            meta:
+              id: req_c465985cac7c462699acc782070b63c6
+              created: 1750701695405
+              modified: 1750795200355
+              isPrivate: false
+              sortKey: -1750701695405
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"name": "Avançado"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+                id: pair_1fdd741645c34ed98b0d0f8d207c9348
+              - name: User-Agent
+                value: insomnia/11.0.0
+                id: pair_f9e38d5df6434bcca9d3ce81aba826f2
+              - id: pair_b9c8daa0a4804d34a22ff320d702b114
+                name: Authorization
+                value: Token {{ _.TOKEN }}
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.URL }}/v1/categories/"
+            name: list
+            meta:
+              id: req_b8268c8a23714124bcf4420b2eb602dc
+              created: 1750705492876
+              modified: 1750709969709
+              isPrivate: false
+              sortKey: -1750583565424.75
+            method: GET
+            body:
+              mimeType: application/json
+            headers:
+              - name: Content-Type
+                value: application/json
+                id: pair_1fdd741645c34ed98b0d0f8d207c9348
+              - name: User-Agent
+                value: insomnia/11.0.0
+                id: pair_f9e38d5df6434bcca9d3ce81aba826f2
+              - id: pair_b9c8daa0a4804d34a22ff320d702b114
+                name: Authorization
+                value: Token {{ _.TOKEN }}
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.URL }}/v1/categories/67008240-d7a4-49e7-abd6-5df7e7605d18/"
+            name: update
+            meta:
+              id: req_06a28b2082b4428fb10d3ee0ba867783
+              created: 1750709804919
+              modified: 1750709887806
+              isPrivate: false
+              sortKey: -1750465435444.5
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"name": "Intermediario B"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+                id: pair_1fdd741645c34ed98b0d0f8d207c9348
+              - name: User-Agent
+                value: insomnia/11.0.0
+                id: pair_f9e38d5df6434bcca9d3ce81aba826f2
+              - id: pair_b9c8daa0a4804d34a22ff320d702b114
+                name: Authorization
+                value: Token {{ _.TOKEN }}
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.URL }}/v1/categories/67008240-d7a4-49e7-abd6-5df7e7605d18/"
+            name: delete
+            meta:
+              id: req_a395eb8bfaa2488b98d28ccafc1951c1
+              created: 1750709967509
+              modified: 1750709974812
+              isPrivate: false
+              sortKey: -1750347305464.25
+            method: DELETE
+            body:
+              mimeType: application/json
+            headers:
+              - name: Content-Type
+                value: application/json
+                id: pair_1fdd741645c34ed98b0d0f8d207c9348
+              - name: User-Agent
+                value: insomnia/11.0.0
+                id: pair_f9e38d5df6434bcca9d3ce81aba826f2
+              - id: pair_b9c8daa0a4804d34a22ff320d702b114
                 name: Authorization
                 value: Token {{ _.TOKEN }}
                 disabled: false
@@ -557,8 +779,8 @@ environments:
   meta:
     id: env_90563274783f080e258c5e2212f8f9e842e91d21
     created: 1749322017935
-    modified: 1749820037817
+    modified: 1750776440748
     isPrivate: false
   data:
     URL: http://localhost:8080/api
-    TOKEN: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MzUyZmEzZi04NmIxLTRkY2EtYTk2Yi1hYzBjNWE5ZTNiNmQiLCJleHAiOjE3NDk5MDU0NzJ9.42aJ4RrjRDm7CrBvvAzkKD6nU9TrAm20W8IXWCToiTA
+    TOKEN: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MzUyZmEzZi04NmIxLTRkY2EtYTk2Yi1hYzBjNWE5ZTNiNmQiLCJleHAiOjE3NTA4NjI4MzAsImFjY2Vzc19sZXZlbCI6ImFkbWluIn0.6rw8pzOtuhA-W0O-mLpV4WQ0gHjxEMH05fjBM_hntaU
