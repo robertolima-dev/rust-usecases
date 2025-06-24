@@ -8,6 +8,7 @@ pub struct Category {
     pub name: String,
     pub dt_created: NaiveDateTime,
     pub dt_updated: Option<NaiveDateTime>,
+    #[serde(skip_serializing)]
     pub dt_deleted: Option<NaiveDateTime>,
 }
 

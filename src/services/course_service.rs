@@ -8,6 +8,7 @@ use crate::models::notification::ObjCodeType;
 use crate::repositories::course_repository;
 use crate::services::notification_service;
 use actix_web::web;
+use anyhow::Context;
 use chrono::Utc;
 use elasticsearch::{IndexParts, SearchParts};
 use serde_json::{Value, json};
@@ -37,8 +38,23 @@ pub async fn create_course_service(
     };
 
     let mut tx = db.begin().await?;
-    course_repository::create_course_in_tx(&course, &mut tx).await?;
+    course_repository::create_course_in_tx(&course, &mut tx)
+        .await
+        .context("Erro ao criar curso no banco")?;
+
+    // 1. Vincular categorias (se tiver)
+    if let Some(category_ids) = payload.category_ids.clone() {
+        for category_id in category_ids {
+            course_repository::add_category_to_course(course.id, category_id, &mut tx)
+                .await
+                .map_err(|e| anyhow::anyhow!(AppError::DatabaseError(Some(e.to_string()))))?;
+        }
+    }
+
     tx.commit().await?;
+
+    let category_names = course_repository::get_category_names_by_course(course.id, db).await?;
+    println!("category_names: {:?}", category_names);
 
     // 🔍 Indexa no Elasticsearch
     let doc = json!({
@@ -51,6 +67,7 @@ pub async fn create_course_service(
         "author_id": course.author_id,
         "dt_start": course.dt_start,
         "dt_created": course.dt_created,
+        "categories": category_names,
     });
 
     let settings = get_settings();
@@ -96,10 +113,42 @@ pub async fn update_course_and_sync(
         )));
     }
 
-    let course = course_repository::update_course(id, user_id, &payload, db)
+    let mut tx = db
+        .begin()
+        .await
+        .map_err(|e| AppError::InternalError(Some(format!("Falha ao iniciar transação: {e}"))))?;
+
+    // Atualiza curso
+    let course = course_repository::update_course(id, user_id, &payload, &mut tx)
         .await
         .map_err(|e| AppError::InternalError(Some(format!("Erro ao atualizar curso: {e}"))))?;
 
+    // Limpa categorias antigas
+    course_repository::delete_categories_by_course(id, &mut tx)
+        .await
+        .map_err(|e| AppError::InternalError(Some(format!("Erro ao limpar categorias: {e}"))))?;
+
+    // Se veio nova lista de categorias, insere elas
+    if let Some(category_ids) = &payload.category_ids {
+        for category_id in category_ids {
+            course_repository::add_category_to_course(id, *category_id, &mut tx)
+                .await
+                .map_err(|e| {
+                    AppError::InternalError(Some(format!("Erro ao adicionar categoria: {e}")))
+                })?;
+        }
+    }
+
+    tx.commit()
+        .await
+        .map_err(|e| AppError::InternalError(Some(format!("Erro ao commitar transação: {e}"))))?;
+
+    // 🔍 Busca os nomes das categorias para indexar no Elasticsearch
+    let categories = course_repository::get_category_names_by_course(id, db)
+        .await
+        .map_err(|e| AppError::InternalError(Some(format!("Erro ao buscar categorias: {e}"))))?;
+
+    // 🔄 Atualiza o Elasticsearch
     let settings = get_settings();
     let index = format!("{}_courses", settings.elasticsearch.index_prefix);
 
@@ -112,6 +161,7 @@ pub async fn update_course_and_sync(
         "month_duration": course.month_duration,
         "author_id": course.author_id,
         "dt_start": course.dt_start,
+        "categories": categories,  // ✅ Incluindo as categorias
     });
 
     es_client
@@ -188,6 +238,14 @@ pub async fn search_courses(
     if let Some(month_duration) = query.month_duration {
         must_clauses.push(json!({
             "term": { "month_duration": month_duration }
+        }));
+    }
+
+    if let Some(category_name) = query.category_name {
+        must_clauses.push(json!({
+            "term": {
+                "categories": category_name.to_string()
+            }
         }));
     }
 

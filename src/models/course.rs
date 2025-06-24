@@ -15,6 +15,7 @@ pub struct Course {
     pub dt_start: NaiveDate,
     pub dt_created: NaiveDateTime,
     pub dt_updated: NaiveDateTime,
+    #[serde(skip_serializing)]
     pub dt_deleted: Option<NaiveDateTime>,
 }
 
@@ -25,6 +26,7 @@ pub struct CreateCourseRequest {
     pub price: f64,
     pub month_duration: i32,
     pub dt_start: NaiveDate,
+    pub category_ids: Option<Vec<Uuid>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -35,6 +37,7 @@ pub struct UpdateCourseRequest {
     pub month_duration: Option<i32>,
     pub dt_start: Option<NaiveDate>,
     pub is_active: Option<bool>,
+    pub category_ids: Option<Vec<Uuid>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -48,6 +51,7 @@ pub struct CourseQuery {
     pub max_price: Option<f64>,
     pub start_from: Option<NaiveDate>,
     pub month_duration: Option<i32>,
+    pub category_name: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -60,10 +64,24 @@ pub struct CourseSearchHit {
     pub month_duration: i32,
     pub author_id: Uuid,
     pub dt_start: NaiveDate,
+    pub categories: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct PaginatedCourseResponse {
     pub results: Vec<CourseSearchHit>,
     pub count: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct CourseCategory {
+    pub id: Uuid,
+    pub course_id: Uuid,
+    pub category_id: Uuid,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CategorySimple {
+    pub id: Uuid,
+    pub name: String,
 }
