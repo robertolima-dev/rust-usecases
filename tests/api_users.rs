@@ -1,14 +1,51 @@
 use actix_web::{App, http::StatusCode, test};
 use rust_usecases::models::user::UserRequest;
-use rust_usecases::routes::user_public_routes::{create_user, login};
+use rust_usecases::routes::configure::api_v1_scope;
+use rust_usecases::config::app_state::AppState;
+use rust_usecases::config::init_settings;
+use rust_usecases::db::test_db::setup_test_db;
+use rust_usecases::db::mongo::init_mongodb;
+use rust_usecases::db::elasticsearch::get_elastic_client;
+use rust_usecases::websocket::server::WsServer;
+use std::sync::Arc;
+use actix::Actor;
+use std::sync::Once;
+
+static INIT: Once = Once::new();
+
+fn init() {
+    INIT.call_once(|| {
+        dotenvy::dotenv().ok();
+        init_settings().expect("Falha ao inicializar settings");
+    });
+}
 
 #[actix_web::test]
 async fn test_create_user_success() {
-    let app = test::init_service(App::new().service(create_user)).await;
+    init();
+
+    let db = setup_test_db().await;
+    let mongo = init_mongodb().await.unwrap();
+    let es = get_elastic_client().unwrap();
+    let ws_server = WsServer::new().start();
+
+    let app_state = Arc::new(AppState {
+        db,
+        mongo,
+        es,
+        ws_server,
+    });
+
+    let app = test::init_service(
+        App::new()
+            .app_data(actix_web::web::Data::from(app_state.clone()))
+            .service(api_v1_scope()),
+    )
+    .await;
 
     let payload = UserRequest {
-        email: "teste@teste.com".to_string(),
-        password: "senha123".to_string(),
+        email: "teste@exemplo.com".to_string(),
+        password: "Senha123456".to_string(),
         first_name: "Teste".to_string(),
         last_name: "User".to_string(),
         profile: None,
@@ -26,7 +63,26 @@ async fn test_create_user_success() {
 
 #[actix_web::test]
 async fn test_create_user_invalid_email() {
-    let app = test::init_service(App::new().service(create_user)).await;
+    init();
+
+    let db = setup_test_db().await;
+    let mongo = init_mongodb().await.unwrap();
+    let es = get_elastic_client().unwrap();
+    let ws_server = WsServer::new().start();
+
+    let app_state = Arc::new(AppState {
+        db,
+        mongo,
+        es,
+        ws_server,
+    });
+
+    let app = test::init_service(
+        App::new()
+            .app_data(actix_web::web::Data::from(app_state.clone()))
+            .service(api_v1_scope()),
+    )
+    .await;
 
     let payload = UserRequest {
         email: "email_invalido".to_string(),
@@ -48,10 +104,29 @@ async fn test_create_user_invalid_email() {
 
 #[actix_web::test]
 async fn test_create_user_password_short() {
-    let app = test::init_service(App::new().service(create_user)).await;
+    init();
+
+    let db = setup_test_db().await;
+    let mongo = init_mongodb().await.unwrap();
+    let es = get_elastic_client().unwrap();
+    let ws_server = WsServer::new().start();
+
+    let app_state = Arc::new(AppState {
+        db,
+        mongo,
+        es,
+        ws_server,
+    });
+
+    let app = test::init_service(
+        App::new()
+            .app_data(actix_web::web::Data::from(app_state.clone()))
+            .service(api_v1_scope()),
+    )
+    .await;
 
     let payload = UserRequest {
-        email: "test@teste.com".to_string(),
+        email: "test@exemplo.com".to_string(),
         password: "123".to_string(), // Senha muito curta
         first_name: "Test".to_string(),
         last_name: "User".to_string(),
@@ -70,11 +145,30 @@ async fn test_create_user_password_short() {
 
 #[actix_web::test]
 async fn test_login_invalid_credentials() {
-    let app = test::init_service(App::new().service(login)).await;
+    init();
+
+    let db = setup_test_db().await;
+    let mongo = init_mongodb().await.unwrap();
+    let es = get_elastic_client().unwrap();
+    let ws_server = WsServer::new().start();
+
+    let app_state = Arc::new(AppState {
+        db,
+        mongo,
+        es,
+        ws_server,
+    });
+
+    let app = test::init_service(
+        App::new()
+            .app_data(actix_web::web::Data::from(app_state.clone()))
+            .service(api_v1_scope()),
+    )
+    .await;
 
     let payload = serde_json::json!({
-        "email": "naoexiste@teste.com",
-        "password": "senhaerrada"
+        "email": "usuario_inexistente@exemplo.com",
+        "password": "Senha123456"
     });
 
     let req = test::TestRequest::post()
