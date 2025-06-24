@@ -8,7 +8,7 @@ pub enum AppError {
     #[display(fmt = "Conflito de dados")]
     Conflict(Option<String>),
 
-    #[display(fmt = "Erro no banco de dados")]
+    #[display(fmt = "{_0:?}")]
     DatabaseError(Option<String>),
 
     #[display(fmt = "Recurso não encontrado")]

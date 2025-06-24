@@ -18,6 +18,7 @@ pub struct User {
     pub password: String,
     pub dt_created: NaiveDateTime,
     pub dt_updated: NaiveDateTime,
+    #[serde(skip_serializing)]
     pub dt_deleted: Option<NaiveDateTime>,
 }
 
