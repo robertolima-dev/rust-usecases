@@ -1,3 +1,4 @@
+pub mod category_routes;
 pub mod configure;
 pub mod course_routes;
 pub mod notification_routes;

@@ -1,3 +1,4 @@
+pub mod category_service;
 pub mod course_service;
 pub mod email_service;
 pub mod notification_service;

@@ -17,8 +17,7 @@ pub async fn create_course(
     let course = course_service::create_course_service(payload.into_inner(), user_id, &state)
         .await
         .map_err(|e| {
-            eprintln!("Erro ao criar curso: {:?}", e);
-            actix_web::error::ErrorInternalServerError("Erro ao criar curso")
+            actix_web::error::ErrorInternalServerError(format!("Erro ao criar curso: {}", e))
         })?;
 
     Ok(HttpResponse::Created().json(course))
@@ -35,7 +34,6 @@ pub async fn update_course(
     let id = path.into_inner();
     let course =
         course_service::update_course_and_sync(id, payload.into_inner(), user_id, &state).await?;
-
     Ok(HttpResponse::Ok().json(course))
 }
 

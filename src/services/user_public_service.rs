@@ -80,7 +80,7 @@ pub async fn create_user_with_request(
     let user_with_profile = UserWithProfile::from_user_and_profile(user, profile);
 
     let settings = get_settings();
-    let token = generate_jwt(&user_id.to_string()).expect("Falha ao gerar token");
+    let token = generate_jwt(&user_id.to_string(), "user").expect("Falha ao gerar token");
     let expires_in = settings.jwt.expires_in.to_string();
 
     info!(
@@ -203,7 +203,7 @@ pub async fn login_user(
     // let token = generate_jwt(&fake_user_id.to_string()).expect("Falha ao gerar token");
 
     // 4. Gerar token JWT
-    let token = generate_jwt(&user.id.to_string()).map_err(|err| {
+    let token = generate_jwt(&user.id.to_string(), &profile.access_level).map_err(|err| {
         error!(
             error = %err,
             "Erro ao gerar token"
