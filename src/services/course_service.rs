@@ -12,7 +12,8 @@ use actix_web::web;
 use anyhow::Context;
 use chrono::Utc;
 use elasticsearch::{IndexParts, SearchParts};
-use serde_json::{Value, json};
+use serde_json::Value;
+use serde_json::json;
 use uuid::Uuid;
 
 pub async fn create_course_service(
@@ -341,4 +342,54 @@ pub async fn delete_course(course_id: Uuid, state: &web::Data<AppState>) -> Resu
     }
 
     Ok(())
+}
+
+pub async fn reindex_courses(state: &web::Data<AppState>) -> Result<i32, anyhow::Error> {
+    let db = &state.db;
+    let es_client = &state.es;
+    let settings = get_settings();
+
+    let courses = course_repository::get_all_active_courses(db).await?;
+
+    let mut indexed = 0;
+    for course in courses {
+        let categories = course_repository::get_category_names_by_course(course.id, db)
+            .await
+            .unwrap_or_default();
+
+        let categories_json: Vec<Value> = categories
+            .into_iter()
+            .map(|cat| json!({ "id": cat.id, "name": cat.name }))
+            .collect();
+
+        let doc = json!({
+            "id": course.id,
+            "name": course.name,
+            "description": course.description,
+            "is_active": course.is_active,
+            "price": course.price,
+            "month_duration": course.month_duration,
+            "author_id": course.author_id,
+            "dt_start": course.dt_start,
+            "dt_created": course.dt_created,
+            "categories": categories_json,
+        });
+
+        let index_name = format!("{}_courses", settings.elasticsearch.index_prefix);
+
+        let response = es_client
+            .index(elasticsearch::IndexParts::IndexId(
+                &index_name,
+                &course.id.to_string(),
+            ))
+            .body(doc)
+            .send()
+            .await?;
+
+        log_elastic_response(response).await;
+
+        indexed += 1;
+    }
+
+    Ok(indexed)
 }
