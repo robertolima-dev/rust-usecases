@@ -1,4 +1,5 @@
 use crate::errors::app_error::AppError;
+use crate::models::category::CategorySimple;
 use crate::models::course::{Course, CourseCategory, UpdateCourseRequest};
 use sqlx::{Error, PgPool, Postgres, Transaction, types::chrono::Utc};
 use uuid::Uuid;
@@ -167,10 +168,10 @@ pub async fn get_category_names_by_ids(
 pub async fn get_category_names_by_course(
     course_id: Uuid,
     db: &PgPool,
-) -> Result<Vec<String>, sqlx::Error> {
+) -> Result<Vec<CategorySimple>, sqlx::Error> {
     let rows = sqlx::query!(
         r#"
-        SELECT c.name
+        SELECT c.name, c.id
         FROM course_categories cc
         JOIN categories c ON c.id = cc.category_id
         WHERE cc.course_id = $1 AND c.dt_deleted IS NULL
@@ -180,5 +181,26 @@ pub async fn get_category_names_by_course(
     .fetch_all(db)
     .await?;
 
-    Ok(rows.into_iter().map(|r| r.name).collect())
+    Ok(rows
+        .into_iter()
+        .map(|r| CategorySimple {
+            id: r.id,
+            name: r.name,
+        })
+        .collect())
+}
+
+pub async fn get_all_active_courses(db: &PgPool) -> Result<Vec<Course>, sqlx::Error> {
+    let rows = sqlx::query_as!(
+        Course,
+        r#"
+        SELECT id, name, description, is_active, price, month_duration, author_id, dt_start, dt_created, dt_updated, dt_deleted
+        FROM courses
+        WHERE is_active = true AND dt_deleted IS NULL
+        "#
+    )
+    .fetch_all(db)
+    .await?;
+
+    Ok(rows)
 }

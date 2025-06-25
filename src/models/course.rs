@@ -1,4 +1,4 @@
-// src/models/course.rs
+use crate::models::category::CategorySimple;
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -64,7 +64,7 @@ pub struct CourseSearchHit {
     pub month_duration: i32,
     pub author_id: Uuid,
     pub dt_start: NaiveDate,
-    pub categories: Option<Vec<String>>,
+    pub categories: Option<Vec<CategorySimple>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -78,10 +78,4 @@ pub struct CourseCategory {
     pub id: Uuid,
     pub course_id: Uuid,
     pub category_id: Uuid,
-}
-
-#[derive(Debug, Serialize)]
-pub struct CategorySimple {
-    pub id: Uuid,
-    pub name: String,
 }

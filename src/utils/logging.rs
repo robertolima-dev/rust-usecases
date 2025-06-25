@@ -1,3 +1,4 @@
+use elasticsearch::http::response::Response;
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::{EnvFilter, prelude::*};
 
@@ -40,4 +41,16 @@ pub fn setup_development_logging() -> Result<(), Box<dyn std::error::Error>> {
     tracing::subscriber::set_global_default(subscriber)?;
 
     Ok(())
+}
+
+pub async fn log_elastic_response(resp: Response) {
+    let status = resp.status_code();
+    let body_text = resp
+        .text()
+        .await
+        .unwrap_or_else(|_| "Erro ao ler body".to_string());
+    println!(
+        "✅ Elasticsearch indexado: {:?}, body: {}",
+        status, body_text
+    );
 }
