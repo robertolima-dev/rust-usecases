@@ -189,3 +189,18 @@ pub async fn get_category_names_by_course(
         })
         .collect())
 }
+
+pub async fn get_all_active_courses(db: &PgPool) -> Result<Vec<Course>, sqlx::Error> {
+    let rows = sqlx::query_as!(
+        Course,
+        r#"
+        SELECT id, name, description, is_active, price, month_duration, author_id, dt_start, dt_created, dt_updated, dt_deleted
+        FROM courses
+        WHERE is_active = true AND dt_deleted IS NULL
+        "#
+    )
+    .fetch_all(db)
+    .await?;
+
+    Ok(rows)
+}

@@ -28,6 +28,7 @@ pub fn api_v1_scope() -> Scope {
                 .service(course_routes::create_course)
                 .service(course_routes::list_courses)
                 .service(course_routes::update_course)
+                .service(course_routes::sync_courses_to_elasticsearch)
                 .service(notification_routes::list_notifications)
                 .service(category_routes::create_category)
                 .service(category_routes::list_categories)
