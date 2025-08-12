@@ -22,7 +22,6 @@ pub struct User {
     pub dt_deleted: Option<NaiveDateTime>,
 }
 
-#[allow(dead_code)]
 impl User {
     pub fn new(
         username: &str,
@@ -130,7 +129,6 @@ pub struct UserResponse {
     pub token: String,
 }
 
-#[allow(dead_code)]
 impl UserWithProfile {
     pub fn from(user: User, profile: Profile) -> Self {
         Self {
